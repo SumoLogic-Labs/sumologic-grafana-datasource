@@ -1,0 +1,32 @@
+{
+  "type": "datasource",
+  "name": "Sumo Logic Metrics",
+  "id": "sumo-logic-metrics-datasource",
+
+  "info": {
+    "description": "Sumo Logic Metrics for Grafana",
+    "author": {
+      "name": "Sumo Logic",
+      "url": "https://www.sumologic.com"
+    },
+    "keywords": ["sumo logic", "sumologic", "sumo", "logic", "metrics"],
+    "logos": {
+      "small": "img/sumo_logo.svg",
+      "large": "img/sumo_logo.svg"
+    },
+    "links": [
+      {"name": "Project site", "url": "https://github.com/SumoLogic/sumo-logic-metrics-datasource"},
+      {"name": "Apache License", "url": "https://github.com/SumoLogic/sumo-logic-metrics-datasource/LICENSE"}
+    ],
+    "version": "0.1.0",
+    "updated": "2017-09-28"
+  },
+
+  "dependencies": {
+    "grafanaVersion": "4.4.x",
+    "plugins": [ ]
+  },
+
+  "metrics": true,
+  "annotations": false
+}
