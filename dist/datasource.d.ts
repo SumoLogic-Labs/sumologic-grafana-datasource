@@ -4,13 +4,9 @@ export default class SumoLogicMetricsDatasource {
     private backendSrv;
     private templateSrv;
     private $q;
-    private timeSrv;
-    type: string;
-    name: string;
     id: number;
-    supportMetrics: boolean;
+    name: string;
     url: string;
-    directUrl: string;
     basicAuth: boolean;
     withCredentials: boolean;
     lastErrors: {};
@@ -19,12 +15,11 @@ export default class SumoLogicMetricsDatasource {
     error: string;
     quantizationDefined: boolean;
     desiredQuantization: number;
-    currentTemplateVars: {};
     /** @ngInject */
-    constructor(instanceSettings: any, backendSrv: any, templateSrv: any, $q: any, timeSrv: any);
+    constructor(instanceSettings: any, backendSrv: any, templateSrv: any, $q: any);
     _request(method: any, url: any, data: any): any;
     specialRegexEscape(value: any): any;
-    interpolateQueryExpr: (value: any, variable: any, defaultFormatFn: any) => any;
+    interpolateQueryExpr: (value: any, variable: any) => any;
     targetContainsTemplate: (target: any) => any;
     query(options: any): any;
     performTimeSeriesQuery(queries: any, start: any, end: any, maxDataPoints: any, requestedDataPoints: any, desiredQuantization: any): any;

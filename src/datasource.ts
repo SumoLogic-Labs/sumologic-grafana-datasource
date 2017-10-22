@@ -4,17 +4,14 @@ import _ from 'lodash';
 import moment from 'moment';
 import * as dateMath from 'app/core/utils/datemath';
 
-var durationSplitRegexp = /(\d+)(ms|s|m|h|d|w|M|y)/;
+const durationSplitRegexp = /(\d+)(ms|s|m|h|d|w|M|y)/;
 
 /** @ngInject */
 export default class SumoLogicMetricsDatasource {
 
-  type: string;
-  name: string;
   id: number;
-  supportMetrics: boolean;
+  name: string;
   url: string;
-  directUrl: string;
   basicAuth: boolean;
   withCredentials: boolean;
   lastErrors: {};
@@ -23,22 +20,18 @@ export default class SumoLogicMetricsDatasource {
   error: string;
   quantizationDefined: boolean;
   desiredQuantization: number;
-  currentTemplateVars: {};
 
   /** @ngInject */
-  constructor(instanceSettings, private backendSrv, private templateSrv, private $q, private timeSrv) {
-    this.type = 'sumo-logic-metrics';
-    this.name = instanceSettings.name;
+  constructor(instanceSettings, private backendSrv, private templateSrv, private $q) {
     this.id = instanceSettings.id;
-    this.supportMetrics = true;
+    this.name = instanceSettings.name;
     this.url = instanceSettings.url;
-    this.directUrl = instanceSettings.directUrl;
     this.basicAuth = instanceSettings.basicAuth;
     this.withCredentials = instanceSettings.withCredentials;
   };
 
   _request(method, url, data) {
-    var options: any = {
+    let options: any = {
       url: this.url + url,
       method: method,
       data: data,
@@ -61,7 +54,7 @@ export default class SumoLogicMetricsDatasource {
     return value.replace(/[\\^$*+?.()|[\]{}]/g, '\\\\$&');
   }
 
-  interpolateQueryExpr = function (value, variable, defaultFormatFn) {
+  interpolateQueryExpr = function (value, variable) {
 
     // if no multi or include all do not regexEscape. Is this needed?
     if (!variable.multi && !variable.includeAll) {
@@ -72,7 +65,7 @@ export default class SumoLogicMetricsDatasource {
       return this.specialRegexEscape(value);
     }
 
-    var escapedValues = _.map(value, this.specialRegexEscape);
+    let escapedValues = _.map(value, this.specialRegexEscape);
     return escapedValues.join('|');
   };
 
@@ -83,7 +76,7 @@ export default class SumoLogicMetricsDatasource {
   // Called once per panel (graph)
   query(options) {
 
-    var self = this;
+    let self = this;
     this.start = this.getTime(options.range.from, false);
     this.end = this.getTime(options.range.to, true);
 
@@ -91,15 +84,15 @@ export default class SumoLogicMetricsDatasource {
     // This gives us the upper limit of data points to be returned
     // by the Sumo backend and seems to be based on the width in
     // pixels of the panel.
-    var maxDataPoints = options.maxDataPoints;
+    let maxDataPoints = options.maxDataPoints;
 
     // Empirically, it seems that we get better looking graphs
     // when requesting some fraction of the indicated width...
-    var requestedDataPoints = Math.round(maxDataPoints / 6);
+    let requestedDataPoints = Math.round(maxDataPoints / 6);
 
     this.desiredQuantization = this.calculateInterval(options.interval);
-    var queries = [];
-    var activeTargets = [];
+    let queries = [];
+    let activeTargets = [];
 
     options = _.clone(options);
 
@@ -110,7 +103,7 @@ export default class SumoLogicMetricsDatasource {
 
       activeTargets.push(target);
 
-      var query: any = {};
+      let query: any = {};
       query.expr = this.templateSrv.replace(target.expr, options.scopedVars, self.interpolateQueryExpr);
       query.requestId = options.panelId + target.refId;
       queries.push(query);
@@ -118,17 +111,17 @@ export default class SumoLogicMetricsDatasource {
 
     // No valid targets, return the empty result to save a round trip.
     if (_.isEmpty(queries)) {
-      var d = this.$q.defer();
+      let d = this.$q.defer();
       d.resolve({data: []});
       return d.promise;
     }
 
-    var allQueryPromise = [this.performTimeSeriesQuery(queries, this.start, this.end,
+    let allQueryPromise = [this.performTimeSeriesQuery(queries, this.start, this.end,
       maxDataPoints, requestedDataPoints, this.desiredQuantization)];
 
     return this.$q.all(allQueryPromise).then(function (allResponse) {
-      var result = [];
-      _.each(allResponse, function (response, index) {
+      let result = [];
+      _.each(allResponse, function (response) {
         if (response.status === 'error') {
           this.lastErrors.query = response.error;
           throw response.error;
@@ -148,15 +141,15 @@ export default class SumoLogicMetricsDatasource {
     if (start > end) {
       throw {message: 'Invalid time range'};
     }
-    var queryList = [];
-    for (var i = 0; i < queries.length; i++) {
+    let queryList = [];
+    for (let i = 0; i < queries.length; i++) {
       queryList.push({
         'query': queries[i].expr,
         'rowId': queries[i].requestId,
       });
     }
-    var url = '/api/v1/metrics/annotated/results';
-    var data = {
+    let url = '/api/v1/metrics/annotated/results';
+    let data = {
       'query': queryList,
       'startTime': start,
       'endTime': end,
@@ -170,15 +163,15 @@ export default class SumoLogicMetricsDatasource {
   };
 
   performSuggestQuery(query) {
-    var url = '/api/v1/metrics/suggest/autocomplete';
-    var data = {
+    let url = '/api/v1/metrics/suggest/autocomplete';
+    let data = {
       query: query,
       pos: query.length,
       queryStartTime: this.start,
       queryEndTime: this.end
     };
     return this._request('POST', url, data).then(function (result) {
-      var suggestionsList = [];
+      let suggestionsList = [];
       _.each(result.data.suggestions, function (suggestion) {
         _.each(suggestion.items, function (item) {
           suggestionsList.push(item.replacement.text);
@@ -197,10 +190,10 @@ export default class SumoLogicMetricsDatasource {
 
     // With the help of templateSrv, we are going to first of figure
     // out the current values of all template variables.
-    var templateVariables = {};
+    let templateVariables = {};
     _.forEach(_.clone(this.templateSrv.variables), function (variable) {
-      var name = variable.name;
-      var value = variable.current.value;
+      let name = variable.name;
+      let value = variable.current.value;
 
       // Prepare the an object for this template variable in the map
       // following the same structure as options.scopedVars from
@@ -210,7 +203,7 @@ export default class SumoLogicMetricsDatasource {
     });
 
     // Resolve template variables in the query to their current value
-    var interpolated;
+    let interpolated;
     try {
       interpolated = this.templateSrv.replace(query, templateVariables, this.interpolateQueryExpr);
     } catch (err) {
@@ -218,20 +211,19 @@ export default class SumoLogicMetricsDatasource {
     }
 
     if (interpolated.startsWith("metaTags|")) {
-      var split = interpolated.split("|");
-      var type = split[0];
-      var parameter = split[1];
-      var actualQuery = split[2];
+      let split = interpolated.split("|");
+      let parameter = split[1];
+      let actualQuery = split[2];
 
-      var url = '/api/v1/metrics/meta/catalog/query';
-      var data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
+      let url = '/api/v1/metrics/meta/catalog/query';
+      let data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
       return this._request('POST', url, data)
         .then(function (result) {
-          var metaTagValues = _.map(result.data.results, function (resultEntry) {
-            var metaTags = resultEntry.metaTags;
-            var metaTagCount = metaTags.length;
-            var metaTag = null;
-            for (var metaTagIndex = 0; metaTagIndex < metaTagCount; metaTagIndex++) {
+          let metaTagValues = _.map(result.data.results, function (resultEntry) {
+            let metaTags = resultEntry.metaTags;
+            let metaTagCount = metaTags.length;
+            let metaTag = null;
+            for (let metaTagIndex = 0; metaTagIndex < metaTagCount; metaTagIndex++) {
               metaTag = metaTags[metaTagIndex];
               if (metaTag.key === parameter) {
                 break;
@@ -242,43 +234,39 @@ export default class SumoLogicMetricsDatasource {
               expandable: true
             };
           });
-          var resultToReturn = _.uniqBy(metaTagValues, 'text');
-          return resultToReturn;
+          return _.uniqBy(metaTagValues, 'text');
         });
     } else if (interpolated.startsWith("metrics|")) {
-      var split = interpolated.split("|");
-      var actualQuery = split[1];
+      let split = interpolated.split("|");
+      let actualQuery = split[1];
 
-      var url = '/api/v1/metrics/meta/catalog/query';
-      var data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
+      let url = '/api/v1/metrics/meta/catalog/query';
+      let data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
       return this._request('POST', url, data)
         .then(function (result) {
-          var metricNames = _.map(result.data.results, function (resultEntry) {
-            var name = resultEntry.name;
+          let metricNames = _.map(result.data.results, function (resultEntry) {
+            let name = resultEntry.name;
             return {
               text: name,
               expandable: true
             };
           });
-          var resultToReturn = _.uniqBy(metricNames, 'text');
-          return resultToReturn;
+          return _.uniqBy(metricNames, 'text');
         });
     } else if (interpolated.startsWith("x-tokens|")) {
-      var split = interpolated.split("|");
-      var type = split[0];
-      var actualQuery = split[1];
+      let split = interpolated.split("|");
+      let actualQuery = split[1];
 
-      var url = '/api/v1/metrics/suggest/autocomplete';
-      var data = '{"queryId":"1","query":"' + actualQuery + '","pos":0,"apiVersion":"0.2.0",' +
+      let url = '/api/v1/metrics/suggest/autocomplete';
+      let data = '{"queryId":"1","query":"' + actualQuery + '","pos":0,"apiVersion":"0.2.0",' +
         '"requestedSectionsAndCounts":{"tokens":1000}}';
       return this._request('POST', url, data)
         .then(function (result) {
-          var tokens = _.map(result.data.suggestions[0].items, function (suggestion) {
+          return _.map(result.data.suggestions[0].items, function (suggestion) {
             return {
               text: suggestion.display,
             };
           });
-          return tokens;
         });
     }
 
@@ -293,9 +281,9 @@ export default class SumoLogicMetricsDatasource {
   };
 
   calculateInterval(interval) {
-    var m = interval.match(durationSplitRegexp);
-    var dur = moment.duration(parseInt(m[1]), m[2]);
-    var sec = dur.asSeconds();
+    let m = interval.match(durationSplitRegexp);
+    let dur = moment.duration(parseInt(m[1]), m[2]);
+    let sec = dur.asSeconds();
     if (sec < 1) {
       sec = 1;
     }
@@ -304,22 +292,22 @@ export default class SumoLogicMetricsDatasource {
 
   transformMetricData(responses) {
 
-    var seriesList = [];
-    var warning;
+    let seriesList = [];
+    let warning;
 
-    for (var i = 0; i < responses.length; i++) {
-      var response = responses[i];
+    for (let i = 0; i < responses.length; i++) {
+      let response = responses[i];
 
       if (!response.messageType) {
-        for (var j = 0; j < response.results.length; j++) {
-          var result = response.results[j];
+        for (let j = 0; j < response.results.length; j++) {
+          let result = response.results[j];
 
           // Synthesize the "target" - the "metric name" basically.
-          var target = "";
-          var dimensions = result.metric.dimensions;
-          var firstAdded = false;
-          for (var k = 0; k < dimensions.length; k++) {
-            var dimension = dimensions[k];
+          let target = "";
+          let dimensions = result.metric.dimensions;
+          let firstAdded = false;
+          for (let k = 0; k < dimensions.length; k++) {
+            let dimension = dimensions[k];
             if (dimension.legend === true) {
               if (firstAdded) {
                 target += ",";
@@ -330,15 +318,15 @@ export default class SumoLogicMetricsDatasource {
           }
 
           // Create Grafana-suitable datapoints.
-          var values = result.datapoints.value;
-          var timestamps = result.datapoints.timestamp;
-          var length = Math.min(values.length, timestamps.length);
-          var datapoints = [];
-          for (var l = 0; l < length; l++) {
-            var value = values[l];
-            var valueParsed = parseFloat(value);
-            var timestamp = timestamps[l];
-            var timestampParsed = parseFloat(timestamp);
+          let values = result.datapoints.value;
+          let timestamps = result.datapoints.timestamp;
+          let length = Math.min(values.length, timestamps.length);
+          let datapoints = [];
+          for (let l = 0; l < length; l++) {
+            let value = values[l];
+            let valueParsed = parseFloat(value);
+            let timestamp = timestamps[l];
+            let timestampParsed = parseFloat(timestamp);
             datapoints.push([valueParsed, timestampParsed]);
           }
 
@@ -357,7 +345,7 @@ export default class SumoLogicMetricsDatasource {
   };
 
   renderTemplate(aliasPattern, aliasData) {
-    var aliasRegex = /\{\{\s*(.+?)\s*\}\}/g;
+    let aliasRegex = /\{\{\s*(.+?)\s*\}\}/g;
     return aliasPattern.replace(aliasRegex, function (match, g1) {
       if (aliasData[g1]) {
         return aliasData[g1];
@@ -367,9 +355,9 @@ export default class SumoLogicMetricsDatasource {
   };
 
   getOriginalMetricName(labelData) {
-    var metricName = labelData.__name__ || '';
+    let metricName = labelData.__name__ || '';
     delete labelData.__name__;
-    var labelPart = _.map(_.toPairs(labelData), function (label) {
+    let labelPart = _.map(_.toPairs(labelData), function (label) {
       return label[0] + '="' + label[1] + '"';
     }).join(',');
     return metricName + '{' + labelPart + '}';

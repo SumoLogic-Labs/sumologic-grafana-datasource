@@ -18,12 +18,11 @@ System.register(['lodash', 'moment', 'app/core/utils/datemath'], function(export
             /** @ngInject */
             SumoLogicMetricsDatasource = (function () {
                 /** @ngInject */
-                function SumoLogicMetricsDatasource(instanceSettings, backendSrv, templateSrv, $q, timeSrv) {
+                function SumoLogicMetricsDatasource(instanceSettings, backendSrv, templateSrv, $q) {
                     this.backendSrv = backendSrv;
                     this.templateSrv = templateSrv;
                     this.$q = $q;
-                    this.timeSrv = timeSrv;
-                    this.interpolateQueryExpr = function (value, variable, defaultFormatFn) {
+                    this.interpolateQueryExpr = function (value, variable) {
                         // if no multi or include all do not regexEscape. Is this needed?
                         if (!variable.multi && !variable.includeAll) {
                             return value;
@@ -37,12 +36,9 @@ System.register(['lodash', 'moment', 'app/core/utils/datemath'], function(export
                     this.targetContainsTemplate = function (target) {
                         return this.templateSrv.variableExists(target.expr);
                     };
-                    this.type = 'sumo-logic-metrics';
-                    this.name = instanceSettings.name;
                     this.id = instanceSettings.id;
-                    this.supportMetrics = true;
+                    this.name = instanceSettings.name;
                     this.url = instanceSettings.url;
-                    this.directUrl = instanceSettings.directUrl;
                     this.basicAuth = instanceSettings.basicAuth;
                     this.withCredentials = instanceSettings.withCredentials;
                 }
@@ -104,7 +100,7 @@ System.register(['lodash', 'moment', 'app/core/utils/datemath'], function(export
                     var allQueryPromise = [this.performTimeSeriesQuery(queries, this.start, this.end, maxDataPoints, requestedDataPoints, this.desiredQuantization)];
                     return this.$q.all(allQueryPromise).then(function (allResponse) {
                         var result = [];
-                        lodash_1.default.each(allResponse, function (response, index) {
+                        lodash_1.default.each(allResponse, function (response) {
                             if (response.status === 'error') {
                                 this.lastErrors.query = response.error;
                                 throw response.error;
@@ -190,7 +186,6 @@ System.register(['lodash', 'moment', 'app/core/utils/datemath'], function(export
                     }
                     if (interpolated.startsWith("metaTags|")) {
                         var split = interpolated.split("|");
-                        var type = split[0];
                         var parameter = split[1];
                         var actualQuery = split[2];
                         var url = '/api/v1/metrics/meta/catalog/query';
@@ -212,8 +207,7 @@ System.register(['lodash', 'moment', 'app/core/utils/datemath'], function(export
                                     expandable: true
                                 };
                             });
-                            var resultToReturn = lodash_1.default.uniqBy(metaTagValues, 'text');
-                            return resultToReturn;
+                            return lodash_1.default.uniqBy(metaTagValues, 'text');
                         });
                     }
                     else if (interpolated.startsWith("metrics|")) {
@@ -230,25 +224,22 @@ System.register(['lodash', 'moment', 'app/core/utils/datemath'], function(export
                                     expandable: true
                                 };
                             });
-                            var resultToReturn = lodash_1.default.uniqBy(metricNames, 'text');
-                            return resultToReturn;
+                            return lodash_1.default.uniqBy(metricNames, 'text');
                         });
                     }
                     else if (interpolated.startsWith("x-tokens|")) {
                         var split = interpolated.split("|");
-                        var type = split[0];
                         var actualQuery = split[1];
                         var url = '/api/v1/metrics/suggest/autocomplete';
                         var data = '{"queryId":"1","query":"' + actualQuery + '","pos":0,"apiVersion":"0.2.0",' +
                             '"requestedSectionsAndCounts":{"tokens":1000}}';
                         return this._request('POST', url, data)
                             .then(function (result) {
-                            var tokens = lodash_1.default.map(result.data.suggestions[0].items, function (suggestion) {
+                            return lodash_1.default.map(result.data.suggestions[0].items, function (suggestion) {
                                 return {
                                     text: suggestion.display,
                                 };
                             });
-                            return tokens;
                         });
                     }
                     // Unknown query type - error.
@@ -296,9 +287,9 @@ System.register(['lodash', 'moment', 'app/core/utils/datemath'], function(export
                                 // Create Grafana-suitable datapoints.
                                 var values = result.datapoints.value;
                                 var timestamps = result.datapoints.timestamp;
-                                var length = Math.min(values.length, timestamps.length);
+                                var length_1 = Math.min(values.length, timestamps.length);
                                 var datapoints = [];
-                                for (var l = 0; l < length; l++) {
+                                for (var l = 0; l < length_1; l++) {
                                     var value = values[l];
                                     var valueParsed = parseFloat(value);
                                     var timestamp = timestamps[l];
