@@ -247,7 +247,7 @@ System.register(['lodash', 'moment', 'app/core/utils/datemath'], function(export
                 };
                 ;
                 SumoLogicMetricsDatasource.prototype.testDatasource = function () {
-                    return this.metricFindQuery('metrics(.*)').then(function () {
+                    return this.metricFindQuery('metrics|*').then(function () {
                         return { status: 'success', message: 'Data source is working', title: 'Success' };
                     });
                 };

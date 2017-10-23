@@ -275,7 +275,7 @@ export default class SumoLogicMetricsDatasource {
   };
 
   testDatasource() {
-    return this.metricFindQuery('metrics(.*)').then(function () {
+    return this.metricFindQuery('metrics|*').then(function () {
       return {status: 'success', message: 'Data source is working', title: 'Success'};
     });
   };
