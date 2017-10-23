@@ -1,3 +1,3 @@
-# Sumo Logic Metrics Datasource -  Plugin
+# Sumo Logic Metrics Datasource
 
-Allows users to monitor Sumo Logic Metrics via the Grafana .
+A Sumo Logic Metrics datasource plugin for Grafana. 

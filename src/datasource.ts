@@ -123,12 +123,12 @@ export default class SumoLogicMetricsDatasource {
       let result = [];
       _.each(allResponse, function (response) {
         if (response.status === 'error') {
-          this.lastErrors.query = response.error;
+          // self.lastErrors['query'] = response.error;
           throw response.error;
         } else {
           result = self.transformMetricData(response.data.response);
         }
-        delete this.lastErrors.query;
+        // delete self.lastErrors['query'];
         result = self.transformMetricData(response.data.response);
       });
 
