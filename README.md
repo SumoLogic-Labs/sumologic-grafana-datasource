@@ -1,14 +1,14 @@
 ## Sumo Logic Metrics Data Source
 
-A Sumo Logic Metrics data source plugin for Grafana. This plugin is still being developed. It is 
-being used internally and therefore should work. But please consider the plugin experimental as 
+A Sumo Logic Metrics data source plugin for Grafana. This plugin is still being actively developed. 
+It is being used internally and therefore should work. But please consider this experimental as 
 of now.
 
 This is version 0.1.0.
 
-The current plan is to cleanup, review, and thoroughly test the data source plugin internally and
+The current plan is to cleanup, review, and test the data source plugin internally and
 then publish a version 0.9.0. As soon as the Sumo Logic Metrics APIs become public and supported,
-we will update the data source plugin and publish a version 1.0.0.
+we will update the data source plugin to use the final public APIs and publish a version 1.0.0.
 
 ### Using the plugin with Grafana
 
@@ -17,7 +17,7 @@ once it reaches version 1.0. It will then be possible to use the customary `graf
 method for installing. But for now, the plugin will have to be installed by using the code in this
 repository.
 
-We have tested this plugin with Grafana version v4.4.3 (commit: 54c79c5).
+We have so far used and tested this data source plugin with Grafana version v4.4.3 and v4.5.2.
 
 Grafana plugin repositories contain a `dist` directory. In order to install the plugin, simply
 copy the `dist` directory to the plugin directory of your Grafana installation, then restart 

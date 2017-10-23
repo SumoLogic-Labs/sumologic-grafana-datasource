@@ -12,6 +12,19 @@ System.register(['lodash', 'moment'], function(exports_1) {
             }],
         execute: function() {
             durationSplitRegexp = /(\d+)(ms|s|m|h|d|w|M|y)/;
+            // Things we still need to do:
+            // - Fully understand the code; it looks like there are still leftovers
+            //   from the Prometheus data source plugin in this code.
+            // - Decide on the final "DSL" for template variable queries in
+            //   metricFindQuery() and see if the autocomplete endpoint can do this
+            //   more efficiently.
+            // - start/end really shouldn't be instance fields on the data source
+            //   object but it is not clear how else to have a time range handy
+            //   for performSuggestQuery.
+            // - quantizationDefined is wonky and shouldn't be an instance field
+            //   either.
+            // - How to support alerting?
+            // - How to support annotations?
             /** @ngInject */
             SumoLogicMetricsDatasource = (function () {
                 /** @ngInject */
@@ -31,12 +44,13 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         return { status: 'success', message: 'Data source is working', title: 'Success' };
                     });
                 };
+                // Called by Grafana to find values for template variables.
                 SumoLogicMetricsDatasource.prototype.metricFindQuery = function (query) {
                     // Bail out immediately if the caller didn't specify a query.
                     if (!query) {
                         return this.$q.when([]);
                     }
-                    // With the help of templateSrv, we are going to first of figure
+                    // With the help of templateSrv, we are going to first of all figure
                     // out the current values of all template variables.
                     var templateVariables = {};
                     lodash_1.default.forEach(lodash_1.default.clone(this.templateSrv.variables), function (variable) {
@@ -45,10 +59,10 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         // Prepare the an object for this template variable in the map
                         // following the same structure as options.scopedVars from
                         // this.query() so we can then in the next step simply pass
-                        // on the map to templateSrv.replace()
+                        // on the map to templateSrv.replace().
                         templateVariables[name] = { 'selelected': true, 'text': value, 'value': value };
                     });
-                    // Resolve template variables in the query to their current value
+                    // Resolve template variables in the query to their current value.
                     var interpolated;
                     try {
                         interpolated = this.templateSrv.replace(query, templateVariables);
@@ -56,6 +70,9 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     catch (err) {
                         return this.$q.reject(err);
                     }
+                    // The catalog query API returns many duplicate results and this
+                    // could be a problem. Maybe figure out how to do the same thing
+                    // with the autocomplete API?
                     if (interpolated.startsWith("metaTags|")) {
                         var split = interpolated.split("|");
                         var parameter = split[1];
@@ -117,6 +134,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     // Unknown query type - error.
                     return this.$q.reject("Unknown metric find query: " + query);
                 };
+                // Called by Grafana to execute a metrics query.
                 SumoLogicMetricsDatasource.prototype.query = function (options) {
                     var _this = this;
                     var self = this;

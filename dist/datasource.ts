@@ -6,6 +6,21 @@ import * as dateMath from 'app/core/utils/datemath';
 
 const durationSplitRegexp = /(\d+)(ms|s|m|h|d|w|M|y)/;
 
+// Things we still need to do:
+// - Fully understand the code; it looks like there are still leftovers
+//   from the Prometheus data source plugin in this code.
+// - Decide on the final "DSL" for template variable queries in
+//   metricFindQuery() and see if the autocomplete endpoint can do this
+//   more efficiently.
+// - start/end really shouldn't be instance fields on the data source
+//   object but it is not clear how else to have a time range handy
+//   for performSuggestQuery.
+// - quantizationDefined is wonky and shouldn't be an instance field
+//   either.
+// - How to support alerting?
+// - How to support annotations?
+
+
 /** @ngInject */
 export default class SumoLogicMetricsDatasource {
 
@@ -33,6 +48,7 @@ export default class SumoLogicMetricsDatasource {
     });
   }
 
+  // Called by Grafana to find values for template variables.
   metricFindQuery(query) {
 
     // Bail out immediately if the caller didn't specify a query.
@@ -40,7 +56,7 @@ export default class SumoLogicMetricsDatasource {
       return this.$q.when([]);
     }
 
-    // With the help of templateSrv, we are going to first of figure
+    // With the help of templateSrv, we are going to first of all figure
     // out the current values of all template variables.
     let templateVariables = {};
     _.forEach(_.clone(this.templateSrv.variables), (variable) => {
@@ -50,11 +66,11 @@ export default class SumoLogicMetricsDatasource {
       // Prepare the an object for this template variable in the map
       // following the same structure as options.scopedVars from
       // this.query() so we can then in the next step simply pass
-      // on the map to templateSrv.replace()
+      // on the map to templateSrv.replace().
       templateVariables[name] = {'selelected': true, 'text': value, 'value': value};
     });
 
-    // Resolve template variables in the query to their current value
+    // Resolve template variables in the query to their current value.
     let interpolated;
     try {
       interpolated = this.templateSrv.replace(query, templateVariables);
@@ -62,6 +78,9 @@ export default class SumoLogicMetricsDatasource {
       return this.$q.reject(err);
     }
 
+    // The catalog query API returns many duplicate results and this
+    // could be a problem. Maybe figure out how to do the same thing
+    // with the autocomplete API?
     if (interpolated.startsWith("metaTags|")) {
       let split = interpolated.split("|");
       let parameter = split[1];
@@ -126,6 +145,7 @@ export default class SumoLogicMetricsDatasource {
     return this.$q.reject("Unknown metric find query: " + query);
   }
 
+  // Called by Grafana to execute a metrics query.
   query(options) {
 
     let self = this;
