@@ -190,6 +190,8 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         return { data: result };
                     });
                 };
+                // Helper methods.
+                // Called from SumoLogicMetricsQueryCtrl.
                 SumoLogicMetricsDatasource.prototype.performSuggestQuery = function (query) {
                     var url = '/api/v1/metrics/suggest/autocomplete';
                     var data = {
@@ -208,7 +210,6 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         return suggestionsList;
                     });
                 };
-                // Helper methods.
                 // Transform results from the Sumo Logic Metrics API called in
                 // query() into the format Grafana expects.
                 SumoLogicMetricsDatasource.prototype.transformMetricData = function (responses) {

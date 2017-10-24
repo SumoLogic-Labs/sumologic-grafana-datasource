@@ -1,22 +1,22 @@
-<section class="grafana-metric-options gf-form-group">
-  <div class="gf-form-inline gf-form--grow" style="text-align:center !important">
-    <p>{{ctrl.panelCtrl.datasource.error}}</p>
-  </div>
-  <div class="gf-form-inline">
-    <div class="gf-form gf-form--grow"></div>
-    <div class="gf-form">
-      <label class="gf-form-label width-8">Resolution</label>
-      <input type="text" class="gf-form-input max-width-6" ng-model="ctrl.panelCtrl.panel.interval"
-             data-placement="right"
-             spellcheck='false'
-             data-min-length=0 data-items=100
-             ng-model-onblur ng-change="ctrl.panelCtrl.datasource.changeQuantization()"/>
-      <info-popover mode="right-absolute">
-        Leave blank for auto handling based on time range and panel width.
-      </info-popover>
-    </div>
-    <div class="gf-form max-width-6">
-      <button class="gf-form-input" ng-click="ctrl.panelCtrl.refresh(); ctrl.panelCtrl.datasource.clearError()">Run</button>
-    </div>
-  </div>
-</section>
+<!--<section class="grafana-metric-options gf-form-group">-->
+  <!--<div class="gf-form-inline gf-form&#45;&#45;grow" style="text-align:center !important">-->
+    <!--<p>{{ctrl.panelCtrl.datasource.error}}</p>-->
+  <!--</div>-->
+  <!--<div class="gf-form-inline">-->
+    <!--<div class="gf-form gf-form&#45;&#45;grow"></div>-->
+    <!--<div class="gf-form">-->
+      <!--<label class="gf-form-label width-8">Resolution</label>-->
+      <!--<input type="text" class="gf-form-input max-width-6" ng-model="ctrl.panelCtrl.panel.interval"-->
+             <!--data-placement="right"-->
+             <!--spellcheck='false'-->
+             <!--data-min-length=0 data-items=100-->
+             <!--ng-model-onblur ng-change="ctrl.panelCtrl.datasource.changeQuantization()"/>-->
+      <!--<info-popover mode="right-absolute">-->
+        <!--Leave blank for auto handling based on time range and panel width.-->
+      <!--</info-popover>-->
+    <!--</div>-->
+    <!--<div class="gf-form max-width-6">-->
+      <!--<button class="gf-form-input" ng-click="ctrl.panelCtrl.refresh(); ctrl.panelCtrl.datasource.clearError()">Run</button>-->
+    <!--</div>-->
+  <!--</div>-->
+<!--</section>-->

@@ -216,6 +216,9 @@ export default class SumoLogicMetricsDatasource {
     });
   }
 
+  // Helper methods.
+
+  // Called from SumoLogicMetricsQueryCtrl.
   performSuggestQuery(query) {
     let url = '/api/v1/metrics/suggest/autocomplete';
     let data = {
@@ -234,8 +237,6 @@ export default class SumoLogicMetricsDatasource {
       return suggestionsList;
     });
   }
-
-  // Helper methods.
 
   // Transform results from the Sumo Logic Metrics API called in
   // query() into the format Grafana expects.
