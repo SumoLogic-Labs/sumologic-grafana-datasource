@@ -6,11 +6,12 @@ System.register([], function(exports_1) {
         execute: function() {
             SumoLogicMetricsQueryOptionsCtrl = (function () {
                 function SumoLogicMetricsQueryOptionsCtrl($scope) {
+                    console.log("sumo-logic-metrics-datasource - QueryOptionsCtrl created.");
                 }
                 SumoLogicMetricsQueryOptionsCtrl.templateUrl = 'partials/query.options.html';
                 return SumoLogicMetricsQueryOptionsCtrl;
             })();
-            exports_1("SumoLogicMetricsQueryOptionsCtrl", SumoLogicMetricsQueryOptionsCtrl);
+            exports_1("default", SumoLogicMetricsQueryOptionsCtrl);
         }
     }
 });

@@ -6,11 +6,12 @@ System.register([], function(exports_1) {
         execute: function() {
             SumoLogicMetricsConfigCtrl = (function () {
                 function SumoLogicMetricsConfigCtrl($scope) {
+                    console.log("sumo-logic-metrics-datasource - ConfigCtrl created.");
                 }
                 SumoLogicMetricsConfigCtrl.templateUrl = 'partials/config.html';
                 return SumoLogicMetricsConfigCtrl;
             })();
-            exports_1("SumoLogicMetricsConfigCtrl", SumoLogicMetricsConfigCtrl);
+            exports_1("default", SumoLogicMetricsConfigCtrl);
         }
     }
 });

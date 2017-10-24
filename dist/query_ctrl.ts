@@ -4,7 +4,7 @@ import _ from 'lodash';
 import {QueryCtrl} from 'app/plugins/sdk';
 import './css/query_editor.css!';
 
-export class SumoLogicMetricsQueryCtrl extends QueryCtrl {
+export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
   static templateUrl = 'partials/query.editor.html';
 
   defaults = {
@@ -16,6 +16,8 @@ export class SumoLogicMetricsQueryCtrl extends QueryCtrl {
   /** @ngInject */
   constructor($scope, $injector, private templateSrv) {
     super($scope, $injector);
+
+    console.log("sumo-logic-metrics-datasource - QueryCtrl created.");
 
     _.defaultsDeep(this.target, this.defaults);
 

@@ -16,9 +16,9 @@ System.register(['./datasource', './config_ctrl', './query_ctrl', './query_optio
             }],
         execute: function() {
             exports_1("Datasource", datasource_1.default);
-            exports_1("ConfigCtrl", config_ctrl_1.SumoLogicMetricsConfigCtrl);
-            exports_1("QueryCtrl", query_ctrl_1.SumoLogicMetricsQueryCtrl);
-            exports_1("QueryOptionsCtrl", query_options_ctrl_1.SumoLogicMetricsQueryOptionsCtrl);
+            exports_1("ConfigCtrl", config_ctrl_1.default);
+            exports_1("QueryCtrl", query_ctrl_1.default);
+            exports_1("QueryOptionsCtrl", query_options_ctrl_1.default);
         }
     }
 });

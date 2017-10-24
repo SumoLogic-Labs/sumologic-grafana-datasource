@@ -25,6 +25,7 @@ System.register(['lodash', 'app/plugins/sdk', './css/query_editor.css!'], functi
                     _super.call(this, $scope, $injector);
                     this.templateSrv = templateSrv;
                     this.defaults = {};
+                    console.log("sumo-logic-metrics-datasource - QueryCtrl created.");
                     lodash_1.default.defaultsDeep(this.target, this.defaults);
                     var target = this.target;
                     target.expr = target.expr || '';
@@ -47,7 +48,7 @@ System.register(['lodash', 'app/plugins/sdk', './css/query_editor.css!'], functi
                 SumoLogicMetricsQueryCtrl.templateUrl = 'partials/query.editor.html';
                 return SumoLogicMetricsQueryCtrl;
             })(sdk_1.QueryCtrl);
-            exports_1("SumoLogicMetricsQueryCtrl", SumoLogicMetricsQueryCtrl);
+            exports_1("default", SumoLogicMetricsQueryCtrl);
         }
     }
 });

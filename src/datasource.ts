@@ -20,7 +20,6 @@ const durationSplitRegexp = /(\d+)(ms|s|m|h|d|w|M|y)/;
 // - How to support alerting?
 // - How to support annotations?
 
-
 /** @ngInject */
 export default class SumoLogicMetricsDatasource {
 
@@ -35,7 +34,7 @@ export default class SumoLogicMetricsDatasource {
   constructor(instanceSettings, private backendSrv, private templateSrv, private $q) {
     this.url = instanceSettings.url;
     this.basicAuth = instanceSettings.basicAuth;
-    console.log("Creating sumo-logic-metrics-datasource.");
+    console.log("sumo-logic-metrics-datasource - Datasource created.");
   }
 
   // Main API.
@@ -59,7 +58,7 @@ export default class SumoLogicMetricsDatasource {
     // With the help of templateSrv, we are going to first of all figure
     // out the current values of all template variables.
     let templateVariables = {};
-    _.forEach(_.clone(this.templateSrv.variables), (variable) => {
+    _.forEach(_.clone(this.templateSrv.variables), variable => {
       let name = variable.name;
       let value = variable.current.value;
 
@@ -89,8 +88,8 @@ export default class SumoLogicMetricsDatasource {
       let url = '/api/v1/metrics/meta/catalog/query';
       let data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
       return this.doRequest('POST', url, data)
-        .then((result) => {
-          let metaTagValues = _.map(result.data.results, (resultEntry) => {
+        .then(result => {
+          let metaTagValues = _.map(result.data.results, resultEntry => {
             let metaTags = resultEntry.metaTags;
             let metaTagCount = metaTags.length;
             let metaTag = null;
@@ -114,8 +113,8 @@ export default class SumoLogicMetricsDatasource {
       let url = '/api/v1/metrics/meta/catalog/query';
       let data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
       return this.doRequest('POST', url, data)
-        .then((result) => {
-          let metricNames = _.map(result.data.results, (resultEntry) => {
+        .then(result => {
+          let metricNames = _.map(result.data.results, resultEntry => {
             let name = resultEntry.name;
             return {
               text: name,
@@ -132,8 +131,8 @@ export default class SumoLogicMetricsDatasource {
       let data = '{"queryId":"1","query":"' + actualQuery + '","pos":0,"apiVersion":"0.2.0",' +
         '"requestedSectionsAndCounts":{"tokens":1000}}';
       return this.doRequest('POST', url, data)
-        .then((result) => {
-          return _.map(result.data.suggestions[0].items, (suggestion) => {
+        .then(result => {
+          return _.map(result.data.suggestions[0].items, suggestion => {
             return {
               text: suggestion.display,
             };
@@ -201,9 +200,9 @@ export default class SumoLogicMetricsDatasource {
         desiredQuantization)];
 
     // Execute the queries and collect all the results.
-    return this.$q.all(allQueryPromise).then((allResponse) => {
+    return this.$q.all(allQueryPromise).then(allResponse => {
       let result = [];
-      _.each(allResponse, (response) => {
+      _.each(allResponse, response => {
         if (response.status === 'error') {
           throw response.error;
         } else {
@@ -225,10 +224,10 @@ export default class SumoLogicMetricsDatasource {
       queryStartTime: this.start,
       queryEndTime: this.end
     };
-    return this.doRequest('POST', url, data).then((result) => {
+    return this.doRequest('POST', url, data).then(result => {
       let suggestionsList = [];
-      _.each(result.data.suggestions, (suggestion) => {
-        _.each(suggestion.items, (item) => {
+      _.each(result.data.suggestions, suggestion => {
+        _.each(suggestion.items, item => {
           suggestionsList.push(item.replacement.text);
         });
       });
@@ -238,46 +237,8 @@ export default class SumoLogicMetricsDatasource {
 
   // Helper methods.
 
-  doMetricsQuery(queries, start, end, maxDataPoints,
-                 requestedDataPoints, desiredQuantization) {
-    if (start > end) {
-      throw {message: 'Invalid time range'};
-    }
-    let queryList = [];
-    for (let i = 0; i < queries.length; i++) {
-      queryList.push({
-        'query': queries[i].expr,
-        'rowId': queries[i].requestId,
-      });
-    }
-    let url = '/api/v1/metrics/annotated/results';
-    let data = {
-      'query': queryList,
-      'startTime': start,
-      'endTime': end,
-      'maxDataPoints': maxDataPoints,
-      'requestedDataPoints': requestedDataPoints
-    };
-    if (this.quantizationDefined && desiredQuantization) {
-      data['desiredQuantizationInSecs'] = desiredQuantization;
-    }
-    return this.doRequest('POST', url, data);
-  }
-
-  doRequest(method, url, data) {
-    let options: any = {
-      url: this.url + url,
-      method: method,
-      data: data,
-      withCredentials: this.basicAuth,
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": this.basicAuth,
-      }
-    };
-    return this.backendSrv.datasourceRequest(options);
-  }
-
+  // Transform results from the Sumo Logic Metrics API called in
+  // query() into the format Grafana expects.
   transformMetricData(responses) {
 
     let seriesList = [];
@@ -332,8 +293,46 @@ export default class SumoLogicMetricsDatasource {
     return seriesList;
   }
 
-  targetContainsTemplate(target) {
-    return this.templateSrv.variableExists(target.expr);
+  doMetricsQuery(queries, start, end, maxDataPoints,
+                 requestedDataPoints, desiredQuantization) {
+    if (start > end) {
+      throw {message: 'Invalid time range'};
+    }
+    let queryList = [];
+    for (let i = 0; i < queries.length; i++) {
+      queryList.push({
+        'query': queries[i].expr,
+        'rowId': queries[i].requestId,
+      });
+    }
+    let url = '/api/v1/metrics/annotated/results';
+    let data = {
+      'query': queryList,
+      'startTime': start,
+      'endTime': end,
+      'maxDataPoints': maxDataPoints,
+      'requestedDataPoints': requestedDataPoints
+    };
+    if (this.quantizationDefined && desiredQuantization) {
+      data['desiredQuantizationInSecs'] = desiredQuantization;
+    }
+    console.log("sumo-logic-metrics-datasource - Datasource.doMetricsQuery: " +
+      JSON.stringify(data));
+    return this.doRequest('POST', url, data);
+  }
+
+  doRequest(method, url, data) {
+    let options: any = {
+      url: this.url + url,
+      method: method,
+      data: data,
+      withCredentials: this.basicAuth,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": this.basicAuth,
+      }
+    };
+    return this.backendSrv.datasourceRequest(options);
   }
 
   calculateInterval(interval) {

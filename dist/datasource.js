@@ -34,7 +34,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     this.$q = $q;
                     this.url = instanceSettings.url;
                     this.basicAuth = instanceSettings.basicAuth;
-                    console.log("Creating sumo-logic-metrics-datasource.");
+                    console.log("sumo-logic-metrics-datasource - Datasource created.");
                 }
                 // Main API.
                 // Called by Grafana to, well, test a datasource. Invoked
@@ -209,43 +209,8 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     });
                 };
                 // Helper methods.
-                SumoLogicMetricsDatasource.prototype.doMetricsQuery = function (queries, start, end, maxDataPoints, requestedDataPoints, desiredQuantization) {
-                    if (start > end) {
-                        throw { message: 'Invalid time range' };
-                    }
-                    var queryList = [];
-                    for (var i = 0; i < queries.length; i++) {
-                        queryList.push({
-                            'query': queries[i].expr,
-                            'rowId': queries[i].requestId,
-                        });
-                    }
-                    var url = '/api/v1/metrics/annotated/results';
-                    var data = {
-                        'query': queryList,
-                        'startTime': start,
-                        'endTime': end,
-                        'maxDataPoints': maxDataPoints,
-                        'requestedDataPoints': requestedDataPoints
-                    };
-                    if (this.quantizationDefined && desiredQuantization) {
-                        data['desiredQuantizationInSecs'] = desiredQuantization;
-                    }
-                    return this.doRequest('POST', url, data);
-                };
-                SumoLogicMetricsDatasource.prototype.doRequest = function (method, url, data) {
-                    var options = {
-                        url: this.url + url,
-                        method: method,
-                        data: data,
-                        withCredentials: this.basicAuth,
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": this.basicAuth,
-                        }
-                    };
-                    return this.backendSrv.datasourceRequest(options);
-                };
+                // Transform results from the Sumo Logic Metrics API called in
+                // query() into the format Grafana expects.
                 SumoLogicMetricsDatasource.prototype.transformMetricData = function (responses) {
                     var seriesList = [];
                     var warning;
@@ -293,8 +258,44 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     }
                     return seriesList;
                 };
-                SumoLogicMetricsDatasource.prototype.targetContainsTemplate = function (target) {
-                    return this.templateSrv.variableExists(target.expr);
+                SumoLogicMetricsDatasource.prototype.doMetricsQuery = function (queries, start, end, maxDataPoints, requestedDataPoints, desiredQuantization) {
+                    if (start > end) {
+                        throw { message: 'Invalid time range' };
+                    }
+                    var queryList = [];
+                    for (var i = 0; i < queries.length; i++) {
+                        queryList.push({
+                            'query': queries[i].expr,
+                            'rowId': queries[i].requestId,
+                        });
+                    }
+                    var url = '/api/v1/metrics/annotated/results';
+                    var data = {
+                        'query': queryList,
+                        'startTime': start,
+                        'endTime': end,
+                        'maxDataPoints': maxDataPoints,
+                        'requestedDataPoints': requestedDataPoints
+                    };
+                    if (this.quantizationDefined && desiredQuantization) {
+                        data['desiredQuantizationInSecs'] = desiredQuantization;
+                    }
+                    console.log("sumo-logic-metrics-datasource - Datasource.doMetricsQuery: " +
+                        JSON.stringify(data));
+                    return this.doRequest('POST', url, data);
+                };
+                SumoLogicMetricsDatasource.prototype.doRequest = function (method, url, data) {
+                    var options = {
+                        url: this.url + url,
+                        method: method,
+                        data: data,
+                        withCredentials: this.basicAuth,
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": this.basicAuth,
+                        }
+                    };
+                    return this.backendSrv.datasourceRequest(options);
                 };
                 SumoLogicMetricsDatasource.prototype.calculateInterval = function (interval) {
                     var m = interval.match(durationSplitRegexp);
