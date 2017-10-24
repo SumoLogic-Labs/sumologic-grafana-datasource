@@ -87,7 +87,7 @@ export default class SumoLogicMetricsDatasource {
 
       let url = '/api/v1/metrics/meta/catalog/query';
       let data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
-      return this.doRequest('POST', url, data)
+      return this._sumoLogicRequest('POST', url, data)
         .then(result => {
           let metaTagValues = _.map(result.data.results, resultEntry => {
             let metaTags = resultEntry.metaTags;
@@ -112,7 +112,7 @@ export default class SumoLogicMetricsDatasource {
 
       let url = '/api/v1/metrics/meta/catalog/query';
       let data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
-      return this.doRequest('POST', url, data)
+      return this._sumoLogicRequest('POST', url, data)
         .then(result => {
           let metricNames = _.map(result.data.results, resultEntry => {
             let name = resultEntry.name;
@@ -130,7 +130,7 @@ export default class SumoLogicMetricsDatasource {
       let url = '/api/v1/metrics/suggest/autocomplete';
       let data = '{"queryId":"1","query":"' + actualQuery + '","pos":0,"apiVersion":"0.2.0",' +
         '"requestedSectionsAndCounts":{"tokens":1000}}';
-      return this.doRequest('POST', url, data)
+      return this._sumoLogicRequest('POST', url, data)
         .then(result => {
           return _.map(result.data.suggestions[0].items, suggestion => {
             return {
@@ -227,7 +227,7 @@ export default class SumoLogicMetricsDatasource {
       queryStartTime: this.start,
       queryEndTime: this.end
     };
-    return this.doRequest('POST', url, data).then(result => {
+    return this._sumoLogicRequest('POST', url, data).then(result => {
       let suggestionsList = [];
       _.each(result.data.suggestions, suggestion => {
         _.each(suggestion.items, item => {
@@ -284,11 +284,9 @@ export default class SumoLogicMetricsDatasource {
           seriesList.push({target: target, datapoints: datapoints});
         }
       } else {
-        warning = "Warning: " + response.message;
+        throw {message: response.message};
+        //TODO: Render warning under query row.
       }
-    }
-    if (warning) {
-      this.error = warning;
     }
 
     return seriesList;
@@ -319,10 +317,10 @@ export default class SumoLogicMetricsDatasource {
     }
     console.log("sumo-logic-metrics-datasource - Datasource.doMetricsQuery: " +
       JSON.stringify(data));
-    return this.doRequest('POST', url, data);
+    return this._sumoLogicRequest('POST', url, data);
   }
 
-  doRequest(method, url, data) {
+  _sumoLogicRequest(method, url, data) {
     let options: any = {
       url: this.url + url,
       method: method,
@@ -333,7 +331,25 @@ export default class SumoLogicMetricsDatasource {
         "Authorization": this.basicAuth,
       }
     };
-    return this.backendSrv.datasourceRequest(options);
+    return this.backendSrv.datasourceRequest(options).then(result => {
+      return result;
+    }, function (err) {
+      if (err.status !== 0 || err.status >= 300) {
+        if (err.data && err.data.error) {
+          throw {
+            message: 'Sumo Logic Error: ' + err.data.error,
+            data: err.data,
+            config: err.config
+          };
+        } else {
+          throw {
+            message: 'Network Error: ' + err.statusText + '(' + err.status + ')',
+            data: err.data,
+            config: err.config
+          };
+        }
+      }
+    });
   }
 
   calculateInterval(interval) {

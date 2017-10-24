@@ -18,7 +18,7 @@ export default class SumoLogicMetricsDatasource {
     performSuggestQuery(query: any): any;
     transformMetricData(responses: any): any[];
     doMetricsQuery(queries: any, start: any, end: any, maxDataPoints: any, requestedDataPoints: any, desiredQuantization: any): any;
-    doRequest(method: any, url: any, data: any): any;
+    _sumoLogicRequest(method: any, url: any, data: any): any;
     calculateInterval(interval: any): number;
     changeQuantization(): void;
 }

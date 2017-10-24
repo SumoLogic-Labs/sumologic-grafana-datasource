@@ -79,7 +79,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         var actualQuery = split[2];
                         var url = '/api/v1/metrics/meta/catalog/query';
                         var data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
-                        return this.doRequest('POST', url, data)
+                        return this._sumoLogicRequest('POST', url, data)
                             .then(function (result) {
                             var metaTagValues = lodash_1.default.map(result.data.results, function (resultEntry) {
                                 var metaTags = resultEntry.metaTags;
@@ -104,7 +104,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         var actualQuery = split[1];
                         var url = '/api/v1/metrics/meta/catalog/query';
                         var data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
-                        return this.doRequest('POST', url, data)
+                        return this._sumoLogicRequest('POST', url, data)
                             .then(function (result) {
                             var metricNames = lodash_1.default.map(result.data.results, function (resultEntry) {
                                 var name = resultEntry.name;
@@ -122,7 +122,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         var url = '/api/v1/metrics/suggest/autocomplete';
                         var data = '{"queryId":"1","query":"' + actualQuery + '","pos":0,"apiVersion":"0.2.0",' +
                             '"requestedSectionsAndCounts":{"tokens":1000}}';
-                        return this.doRequest('POST', url, data)
+                        return this._sumoLogicRequest('POST', url, data)
                             .then(function (result) {
                             return lodash_1.default.map(result.data.suggestions[0].items, function (suggestion) {
                                 return {
@@ -200,7 +200,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         queryStartTime: this.start,
                         queryEndTime: this.end
                     };
-                    return this.doRequest('POST', url, data).then(function (result) {
+                    return this._sumoLogicRequest('POST', url, data).then(function (result) {
                         var suggestionsList = [];
                         lodash_1.default.each(result.data.suggestions, function (suggestion) {
                             lodash_1.default.each(suggestion.items, function (item) {
@@ -251,11 +251,8 @@ System.register(['lodash', 'moment'], function(exports_1) {
                             }
                         }
                         else {
-                            warning = "Warning: " + response.message;
+                            throw { message: response.message };
                         }
-                    }
-                    if (warning) {
-                        this.error = warning;
                     }
                     return seriesList;
                 };
@@ -283,9 +280,9 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     }
                     console.log("sumo-logic-metrics-datasource - Datasource.doMetricsQuery: " +
                         JSON.stringify(data));
-                    return this.doRequest('POST', url, data);
+                    return this._sumoLogicRequest('POST', url, data);
                 };
-                SumoLogicMetricsDatasource.prototype.doRequest = function (method, url, data) {
+                SumoLogicMetricsDatasource.prototype._sumoLogicRequest = function (method, url, data) {
                     var options = {
                         url: this.url + url,
                         method: method,
@@ -296,7 +293,26 @@ System.register(['lodash', 'moment'], function(exports_1) {
                             "Authorization": this.basicAuth,
                         }
                     };
-                    return this.backendSrv.datasourceRequest(options);
+                    return this.backendSrv.datasourceRequest(options).then(function (result) {
+                        return result;
+                    }, function (err) {
+                        if (err.status !== 0 || err.status >= 300) {
+                            if (err.data && err.data.error) {
+                                throw {
+                                    message: 'Sumo Logic Error: ' + err.data.error,
+                                    data: err.data,
+                                    config: err.config
+                                };
+                            }
+                            else {
+                                throw {
+                                    message: 'Network Error: ' + err.statusText + '(' + err.status + ')',
+                                    data: err.data,
+                                    config: err.config
+                                };
+                            }
+                        }
+                    });
                 };
                 SumoLogicMetricsDatasource.prototype.calculateInterval = function (interval) {
                     var m = interval.match(durationSplitRegexp);
