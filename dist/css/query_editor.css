@@ -17,3 +17,15 @@
 .gf-form-select-wrapper--caret-indent.gf-form-select-wrapper::after {
   right: 0.775rem
 }
+
+.error {
+  display: block;
+  flex-grow: 1;
+  font-size: .875rem;
+  margin: 0 2px 0 3px;
+  border: 1px solid transparent;
+  border-left: 2px solid red;
+  border-radius: 0;
+  padding-bottom: 6px;
+  word-break: normal;
+}
