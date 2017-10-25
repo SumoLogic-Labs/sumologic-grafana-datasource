@@ -167,14 +167,16 @@ export default class SumoLogicMetricsDatasource {
     // Figure out the desired quantization.
     let desiredQuantization = this.calculateInterval(options.interval);
 
-    let queries = [];
-    let activeTargets = [];
-
+    const targets = options.targets;
+    const queries = [];
     _.each(options.targets, target => {
       if (!target.expr || target.hide) {
         return;
       }
-      activeTargets.push(target);
+
+      // Reset previous errors, if any.
+      target.error = null;
+
       let query: any = {};
       query.expr = this.templateSrv.replace(target.expr, options.scopedVars);
       query.requestId = options.panelId + target.refId;
@@ -190,7 +192,7 @@ export default class SumoLogicMetricsDatasource {
     }
 
     // Set up the promises.
-    let allQueryPromise = [
+    let queriesPromise = [
       this.doMetricsQuery(
         queries,
         this.start,
@@ -200,16 +202,16 @@ export default class SumoLogicMetricsDatasource {
         desiredQuantization)];
 
     // Execute the queries and collect all the results.
-    return this.$q.all(allQueryPromise).then(allResponse => {
+    return this.$q.all(queriesPromise).then(responses => {
       let result = [];
-      _.each(allResponse, response => {
+      for (let i = 0; i < responses.length; i++) {
+        const response = responses[i];
         if (response.status === 'error') {
           throw response.error;
-        } else {
-          result = self.transformMetricData(response.data.response);
         }
-        result = self.transformMetricData(response.data.response);
-      });
+        const target = targets[i];
+        result = self.transformMetricData(targets, response.data.response);
+      }
 
       // Return the results.
       return {data: result};
@@ -240,13 +242,14 @@ export default class SumoLogicMetricsDatasource {
 
   // Transform results from the Sumo Logic Metrics API called in
   // query() into the format Grafana expects.
-  transformMetricData(responses) {
+  transformMetricData(targets, responses) {
 
     let seriesList = [];
     let errors = [];
 
     for (let i = 0; i < responses.length; i++) {
       let response = responses[i];
+      let target = targets[i];
 
       if (!response.messageType) {
         for (let j = 0; j < response.results.length; j++) {
@@ -284,16 +287,16 @@ export default class SumoLogicMetricsDatasource {
           seriesList.push({target: target, datapoints: datapoints});
         }
       } else {
-        console.log("sumo-logic-metrics-datasource - Datasource.transformMetricData: " +
+        console.log("sumo-logic-metrics-datasource - Datasource.transformMetricData - error: " +
           JSON.stringify(response));
         errors.push(response.message);
+        target.error = response.message;
       }
     }
 
     if (errors.length > 0) {
       throw {message: errors.join("<br>")};
     }
-    //TODO: Render warning under query row.
 
     return seriesList;
   }

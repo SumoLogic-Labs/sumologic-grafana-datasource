@@ -6,8 +6,13 @@
                    bs-typeahead="ctrl.suggestMetrics" spellcheck='false'
                    placeholder="Sumo Logic metrics query" data-min-length=0 data-items=100
                    ng-change="ctrl.suggestMetrics(ctrl.target.expr)"
-                   ng-blur="ctrl.panelCtrl.refresh()"
-               >
+                   ng-blur="ctrl.panelCtrl.refresh()" />
+        </div>
+    </div>
+    <div class="gf-form-inline" ng-show="ctrl.target.error">
+        <div class="gf-form gf-form--grow">
+            <label class="gf-form-label width-6"></label>
+            <div><pre>{{ctrl.target.error}}</pre></div>
         </div>
     </div>
 </query-editor-row>

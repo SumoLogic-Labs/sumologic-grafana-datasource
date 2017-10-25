@@ -30,6 +30,7 @@ System.register(['lodash', 'app/plugins/sdk', './css/query_editor.css!'], functi
                     var target = this.target;
                     target.expr = target.expr || '';
                     target.intervalFactor = 1;
+                    target.error = null;
                     $scope.$on('typeahead-updated', function () {
                         $scope.$apply(function () {
                         });

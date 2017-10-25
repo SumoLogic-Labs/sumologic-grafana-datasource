@@ -24,6 +24,8 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
     var target = this.target;
     target.expr = target.expr || '';
     target.intervalFactor = 1;
+    target.error = null;
+
     $scope.$on('typeahead-updated', () => {
       $scope.$apply(() => {
       });

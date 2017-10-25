@@ -152,13 +152,14 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     var requestedDataPoints = Math.round(maxDataPoints / 6);
                     // Figure out the desired quantization.
                     var desiredQuantization = this.calculateInterval(options.interval);
+                    var targets = options.targets;
                     var queries = [];
-                    var activeTargets = [];
                     lodash_1.default.each(options.targets, function (target) {
                         if (!target.expr || target.hide) {
                             return;
                         }
-                        activeTargets.push(target);
+                        // Reset previous errors, if any.
+                        target.error = null;
                         var query = {};
                         query.expr = _this.templateSrv.replace(target.expr, options.scopedVars);
                         query.requestId = options.panelId + target.refId;
@@ -172,20 +173,19 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         return d.promise;
                     }
                     // Set up the promises.
-                    var allQueryPromise = [
+                    var queriesPromise = [
                         this.doMetricsQuery(queries, this.start, this.end, maxDataPoints, requestedDataPoints, desiredQuantization)];
                     // Execute the queries and collect all the results.
-                    return this.$q.all(allQueryPromise).then(function (allResponse) {
+                    return this.$q.all(queriesPromise).then(function (responses) {
                         var result = [];
-                        lodash_1.default.each(allResponse, function (response) {
+                        for (var i = 0; i < responses.length; i++) {
+                            var response = responses[i];
                             if (response.status === 'error') {
                                 throw response.error;
                             }
-                            else {
-                                result = self.transformMetricData(response.data.response);
-                            }
-                            result = self.transformMetricData(response.data.response);
-                        });
+                            var target = targets[i];
+                            result = self.transformMetricData(targets, response.data.response);
+                        }
                         // Return the results.
                         return { data: result };
                     });
@@ -212,25 +212,26 @@ System.register(['lodash', 'moment'], function(exports_1) {
                 };
                 // Transform results from the Sumo Logic Metrics API called in
                 // query() into the format Grafana expects.
-                SumoLogicMetricsDatasource.prototype.transformMetricData = function (responses) {
+                SumoLogicMetricsDatasource.prototype.transformMetricData = function (targets, responses) {
                     var seriesList = [];
                     var errors = [];
                     for (var i = 0; i < responses.length; i++) {
                         var response = responses[i];
+                        var target = targets[i];
                         if (!response.messageType) {
                             for (var j = 0; j < response.results.length; j++) {
                                 var result = response.results[j];
                                 // Synthesize the "target" - the "metric name" basically.
-                                var target = "";
+                                var target_1 = "";
                                 var dimensions = result.metric.dimensions;
                                 var firstAdded = false;
                                 for (var k = 0; k < dimensions.length; k++) {
                                     var dimension = dimensions[k];
                                     if (dimension.legend === true) {
                                         if (firstAdded) {
-                                            target += ",";
+                                            target_1 += ",";
                                         }
-                                        target += dimension.key + "=" + dimension.value;
+                                        target_1 += dimension.key + "=" + dimension.value;
                                         firstAdded = true;
                                     }
                                 }
@@ -247,19 +248,19 @@ System.register(['lodash', 'moment'], function(exports_1) {
                                     datapoints.push([valueParsed, timestampParsed]);
                                 }
                                 // Add the series.
-                                seriesList.push({ target: target, datapoints: datapoints });
+                                seriesList.push({ target: target_1, datapoints: datapoints });
                             }
                         }
                         else {
-                            console.log("sumo-logic-metrics-datasource - Datasource.transformMetricData: " +
+                            console.log("sumo-logic-metrics-datasource - Datasource.transformMetricData - error: " +
                                 JSON.stringify(response));
                             errors.push(response.message);
+                            target.error = response.message;
                         }
                     }
                     if (errors.length > 0) {
                         throw { message: errors.join("<br>") };
                     }
-                    //TODO: Render warning under query row.
                     return seriesList;
                 };
                 SumoLogicMetricsDatasource.prototype.doMetricsQuery = function (queries, start, end, maxDataPoints, requestedDataPoints, desiredQuantization) {
