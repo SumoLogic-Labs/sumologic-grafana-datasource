@@ -243,7 +243,7 @@ export default class SumoLogicMetricsDatasource {
   transformMetricData(responses) {
 
     let seriesList = [];
-    let warning;
+    let errors = [];
 
     for (let i = 0; i < responses.length; i++) {
       let response = responses[i];
@@ -284,10 +284,16 @@ export default class SumoLogicMetricsDatasource {
           seriesList.push({target: target, datapoints: datapoints});
         }
       } else {
-        throw {message: response.message};
-        //TODO: Render warning under query row.
+        console.log("sumo-logic-metrics-datasource - Datasource.transformMetricData: " +
+          JSON.stringify(response));
+        errors.push(response.message);
       }
     }
+
+    if (errors.length > 0) {
+      throw {message: errors.join("<br>")};
+    }
+    //TODO: Render warning under query row.
 
     return seriesList;
   }

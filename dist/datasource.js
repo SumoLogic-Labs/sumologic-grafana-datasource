@@ -214,7 +214,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                 // query() into the format Grafana expects.
                 SumoLogicMetricsDatasource.prototype.transformMetricData = function (responses) {
                     var seriesList = [];
-                    var warning;
+                    var errors = [];
                     for (var i = 0; i < responses.length; i++) {
                         var response = responses[i];
                         if (!response.messageType) {
@@ -251,9 +251,15 @@ System.register(['lodash', 'moment'], function(exports_1) {
                             }
                         }
                         else {
-                            throw { message: response.message };
+                            console.log("sumo-logic-metrics-datasource - Datasource.transformMetricData: " +
+                                JSON.stringify(response));
+                            errors.push(response.message);
                         }
                     }
+                    if (errors.length > 0) {
+                        throw { message: errors.join("<br>") };
+                    }
+                    //TODO: Render warning under query row.
                     return seriesList;
                 };
                 SumoLogicMetricsDatasource.prototype.doMetricsQuery = function (queries, start, end, maxDataPoints, requestedDataPoints, desiredQuantization) {
