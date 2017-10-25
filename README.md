@@ -17,7 +17,7 @@ once it reaches version 1.0. It will then be possible to use the customary `graf
 method for installing. But for now, the plugin will have to be installed by using the code in this
 repository.
 
-We have so far used and tested this data source plugin with Grafana version v4.4.3 and v4.5.2.
+We have so far used and tested this data source plugin with Grafana version v4.4.3.
 
 Grafana plugin repositories contain a `dist` directory. In order to install the plugin, simply
 copy the `dist` directory to the plugin directory of your Grafana installation, then restart 
