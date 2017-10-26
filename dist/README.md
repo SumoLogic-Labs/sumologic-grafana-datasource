@@ -22,7 +22,7 @@ We have so far used and tested this data source plugin with Grafana version v4.4
 This branch supports Grafana v4.5.x.
 
 The plugin for Grafana v4.4.x is here: 
-(https://github.com/SumoLogic/sumo-logic-metrics-datasource/tree/v4.4.x)[https://github.com/SumoLogic/sumo-logic-metrics-datasource/tree/v4.4.x]
+[https://github.com/SumoLogic/sumo-logic-metrics-datasource/tree/v4.4.x](https://github.com/SumoLogic/sumo-logic-metrics-datasource/tree/v4.4.x)
 
 Grafana plugin repositories contain a `dist` directory. In order to install the plugin, simply
 copy the `dist` directory to the plugin directory of your Grafana installation, then restart 
