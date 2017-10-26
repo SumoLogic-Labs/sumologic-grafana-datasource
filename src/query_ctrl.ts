@@ -7,8 +7,7 @@ import './css/query_editor.css!';
 export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
   static templateUrl = 'partials/query.editor.html';
 
-  defaults = {
-  };
+  defaults = {};
 
   suggestMetrics: any;
   savedCallback: any;
@@ -31,15 +30,19 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
       });
     });
 
-    // called from typeahead, so needed this here in order to ensure this ref
+    // Called from typeahead, so needed this here in order to ensure this ref.
     this.suggestMetrics = (query, callback) => {
       var cb;
-      if (callback!==undefined){
+      if (callback !== undefined) {
         this.savedCallback = callback;
       }
       cb = this.savedCallback;
       this.datasource.performSuggestQuery(query)
         .then(cb);
     };
+
+    // Refresh to execute the query, which will update any errors so
+    // we can display them.
+    this.refresh();
   }
 }

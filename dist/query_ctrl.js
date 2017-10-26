@@ -35,7 +35,7 @@ System.register(['lodash', 'app/plugins/sdk', './css/query_editor.css!'], functi
                         $scope.$apply(function () {
                         });
                     });
-                    // called from typeahead, so needed this here in order to ensure this ref
+                    // Called from typeahead, so needed this here in order to ensure this ref.
                     this.suggestMetrics = function (query, callback) {
                         var cb;
                         if (callback !== undefined) {
@@ -45,6 +45,9 @@ System.register(['lodash', 'app/plugins/sdk', './css/query_editor.css!'], functi
                         _this.datasource.performSuggestQuery(query)
                             .then(cb);
                     };
+                    // Refresh to execute the query, which will update any errors so
+                    // we can display them.
+                    this.refresh();
                 }
                 SumoLogicMetricsQueryCtrl.templateUrl = 'partials/query.editor.html';
                 return SumoLogicMetricsQueryCtrl;
