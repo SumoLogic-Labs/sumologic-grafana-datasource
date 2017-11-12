@@ -65,4 +65,14 @@ describe('SumologicDatasource', function() {
       });
     });
   });
+
+  describe('When doing interval calculation', function () {
+    it('return correct intervals', function () {
+      expect(ctx.ds.calculateInterval('1m')).to.equal(60);
+      expect(ctx.ds.calculateInterval('1h')).to.equal(3600);
+      expect(ctx.ds.calculateInterval('0s')).to.equal(1);
+      expect(ctx.ds.calculateInterval('2s')).to.equal(2);
+      expect(ctx.ds.calculateInterval('1s')).to.equal(1);
+    });
+  });
 });
