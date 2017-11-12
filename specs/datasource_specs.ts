@@ -66,6 +66,111 @@ describe('SumologicDatasource', function() {
     });
   });
 
+  describe('transform the sumo results into grafana consumable results correctly', function () {
+    let metricsResponse = {
+      "response": [
+        {
+          rowId: "1A",
+          results: [
+            {
+              metric: {
+                name: "",
+                dimensions: [
+                  {
+                    key: "metric",
+                    value: "sum(Mem_Used)",
+                    legend: true
+                  }
+                ],
+                algoId: 1,
+                customLabel: ""
+              },
+              datapoints: {
+                timestamp: [
+                  1502755200000,
+                  1502841600000,
+                  1502928000000,
+                  1503014400000
+                ],
+                value: [
+                  9.464266168519951E10,
+                  8.237131403306667E10,
+                  8.067944976113092E10,
+                  8.82104353912889E10
+                ],
+                outlierParams: [],
+                max: null,
+                min: null,
+                avg: null,
+                count: null,
+                isFilled: [
+                  false,
+                  false,
+                  false,
+                  false
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      queryInfo: {
+        startTime: 1502737914240,
+        endTime: 1510513914240,
+        desiredQuantizationInSecs: {
+          empty: true,
+          defined: false
+        },
+        actualQuantizationInSecs: 86400
+      }
+    };
+
+    let options = {
+      targets: [{
+        expr: "_contentType=HostMetrics _sourceHost=$cluster-* metric=CPU_LoadAvg_1min | avg"
+      }],
+      range: {
+        from: 1502738508591,
+        to: 1510514508591
+      },
+      interval: '1s',
+      maxDataPoints: 716,
+      requestedDataPoints: 119
+    };
+
+    let expectedDataPointsAfterTransformation = [
+      [
+        94642661685.19951,
+        1502755200000
+      ],
+      [
+        82371314033.06667,
+        1502841600000
+      ],
+      [
+        80679449761.13092,
+        1502928000000
+      ],
+      [
+        88210435391.2889,
+        1503014400000
+      ]
+    ];
+
+    beforeEach(function () {
+      ctx.backendSrv.datasourceRequest = function (options) {
+        return ctx.$q.when({data: metricsResponse, status: 200});
+      };
+    });
+
+    it('when asked for dimensions', function () {
+      return ctx.ds.query(options).then(function (results) {
+        expect(results.data[0].target).to.equal('metric=sum(Mem_Used)');
+        expect(results.data[0].datapoints).to.eql(expectedDataPointsAfterTransformation);
+      });
+    });
+  });
+
   describe('When doing interval calculation', function () {
     it('return correct intervals', function () {
       expect(ctx.ds.calculateInterval('1m')).to.equal(60);
