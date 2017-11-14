@@ -81,31 +81,7 @@ export default class SumoLogicMetricsDatasource {
     // could be a problem. Maybe figure out how to do the same thing
     // with the autocomplete API?
     if (interpolated.startsWith("metaTags|")) {
-      let split = interpolated.split("|");
-      let parameter = split[1];
-      let actualQuery = split[2];
-
-      let url = '/api/v1/metrics/meta/catalog/query';
-      let data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
-      return this._sumoLogicRequest('POST', url, data)
-        .then(result => {
-          let metaTagValues = _.map(result.data.results, resultEntry => {
-            let metaTags = resultEntry.metaTags;
-            let metaTagCount = metaTags.length;
-            let metaTag = null;
-            for (let metaTagIndex = 0; metaTagIndex < metaTagCount; metaTagIndex++) {
-              metaTag = metaTags[metaTagIndex];
-              if (metaTag.key === parameter) {
-                break;
-              }
-            }
-            return {
-              text: metaTag.value,
-              expandable: true
-            };
-          });
-          return _.uniqBy(metaTagValues, 'text');
-        });
+      this.getMetadataTags(interpolated)
     } else if (interpolated.startsWith("metrics|")) {
       let split = interpolated.split("|");
       let actualQuery = split[1];
@@ -142,6 +118,34 @@ export default class SumoLogicMetricsDatasource {
 
     // Unknown query type - error.
     return this.$q.reject("Unknown metric find query: " + query);
+  }
+
+  getMetadataTags(interpolatedQuery) {
+    let split = interpolatedQuery.split("|");
+    let parameter = split[1];
+    let actualQuery = split[2];
+
+    let url = '/api/v1/metrics/meta/catalog/query';
+    let data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
+    return this._sumoLogicRequest('POST', url, data)
+        .then(result => {
+          let metaTagValues = _.map(result.data.results, resultEntry => {
+            let metaTags = resultEntry.metaTags;
+            let metaTagCount = metaTags.length;
+            let metaTag = null;
+            for (let metaTagIndex = 0; metaTagIndex < metaTagCount; metaTagIndex++) {
+              metaTag = metaTags[metaTagIndex];
+              if (metaTag.key === parameter) {
+                break;
+              }
+            }
+            return {
+              text: metaTag.value,
+              expandable: true
+            };
+          });
+          return _.uniqBy(metaTagValues, 'text');
+        });
   }
 
   // Called by Grafana to execute a metrics query.

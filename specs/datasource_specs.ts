@@ -10,6 +10,55 @@ describe('SumologicDatasource', function() {
     templateSrv: new TemplateSrvStub()
   };
 
+  let sumologicQueryResponse = [
+    {
+      name: "CPU_LoadAvg_1min",
+      dimensions: [
+        {
+          key: "_collectorId",
+          value: "000000000F"
+        },
+        {
+          key: "metric",
+          value: "CPU_LoadAvg_1min_a"
+        }
+      ],
+      metaTags: [
+        {
+          key: "_source",
+          value: "HostMetrics1"
+        },
+        {
+          key: "_sourceName",
+          value: "HostMetrics1"
+        }
+      ]
+    },
+    {
+      name: "CPU_LoadAvg_1min",
+      dimensions: [
+        {
+          key: "_collectorId",
+          value: "000000000E"
+        },
+        {
+          key: "metric",
+          value: "CPU_LoadAvg_1min_b"
+        }
+      ],
+      metaTags: [
+        {
+          key: "_source",
+          value: "HostMetrics2"
+        },
+        {
+          key: "_sourceName",
+          value: "HostMetrics2"
+        }
+      ]
+    }
+  ];
+
   beforeEach(function() {
     ctx.$q = Q;
     ctx.instanceSettings = {};
@@ -61,6 +110,29 @@ describe('SumologicDatasource', function() {
       it('should return success status', function() {
         return ctx.ds.testDatasource().then(function(results) {
           expect(results.status).to.equal('success');
+        });
+      });
+    });
+  });
+
+  describe('When trying to get data from Sumologic ', function () {
+    describe('return correct data', function () {
+      const response = {
+        results: sumologicQueryResponse,
+        status: 200,
+        statusText: 'OK'
+      };
+
+      beforeEach(function () {
+        ctx.backendSrv.datasourceRequest = function (options) {
+          return ctx.$q.when({data: response, status: 200});
+        };
+      });
+      it('when asked for metadata', function () {
+        let testQuery = 'metadata| _sourceName| test';
+        return ctx.ds.getMetadataTags(testQuery).then(function (results) {
+          let _sourceNameMetadataList = _.map(results, result => result.text);
+          expect(_sourceNameMetadataList).to.eql(['HostMetrics1', 'HostMetrics2']);
         });
       });
     });
