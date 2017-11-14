@@ -81,14 +81,26 @@ export default class SumoLogicMetricsDatasource {
     // could be a problem. Maybe figure out how to do the same thing
     // with the autocomplete API?
     if (interpolated.startsWith("metaTags|")) {
-      this.getMetadataTags(interpolated)
+      return this.getMetadataTags(interpolated);
     } else if (interpolated.startsWith("metrics|")) {
-      let split = interpolated.split("|");
-      let actualQuery = split[1];
+      return this.getAvailableMetrics(interpolated);
+    } else if (interpolated.startsWith("x-tokens|")) {
+      return this.getQuerySuggestions(interpolated);
+    } else if (interpolated.startsWith("dimensions|")) {
+      return this.getAvailableDimensions(interpolated);
+    }
 
-      let url = '/api/v1/metrics/meta/catalog/query';
-      let data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
-      return this._sumoLogicRequest('POST', url, data)
+    // Unknown query type - error.
+    return this.$q.reject("Unknown metric find query: " + query);
+  }
+
+  getAvailableMetrics(interpolatedQuery){
+    let split = interpolatedQuery.split("|");
+    let actualQuery = split[1];
+
+    let url = '/api/v1/metrics/meta/catalog/query';
+    let data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
+    return this._sumoLogicRequest('POST', url, data)
         .then(result => {
           let metricNames = _.map(result.data.results, resultEntry => {
             let name = resultEntry.name;
@@ -99,14 +111,16 @@ export default class SumoLogicMetricsDatasource {
           });
           return _.uniqBy(metricNames, 'text');
         });
-    } else if (interpolated.startsWith("x-tokens|")) {
-      let split = interpolated.split("|");
-      let actualQuery = split[1];
+  }
 
-      let url = '/api/v1/metrics/suggest/autocomplete';
-      let data = '{"queryId":"1","query":"' + actualQuery + '","pos":0,"apiVersion":"0.2.0",' +
+  getQuerySuggestions(interpolatedQuery) {
+    let split = interpolatedQuery.split("|");
+    let actualQuery = split[1];
+
+    let url = '/api/v1/metrics/suggest/autocomplete';
+    let data = '{"queryId":"1","query":"' + actualQuery + '","pos":0,"apiVersion":"0.2.0",' +
         '"requestedSectionsAndCounts":{"tokens":1000}}';
-      return this._sumoLogicRequest('POST', url, data)
+    return this._sumoLogicRequest('POST', url, data)
         .then(result => {
           return _.map(result.data.suggestions[0].items, suggestion => {
             return {
@@ -114,10 +128,34 @@ export default class SumoLogicMetricsDatasource {
             };
           });
         });
-    }
+  }
 
-    // Unknown query type - error.
-    return this.$q.reject("Unknown metric find query: " + query);
+  getAvailableDimensions(interpolatedQuery) {
+    let split = interpolatedQuery.split("|");
+    let parameter = split[1];
+    let actualQuery = split[2];
+
+    let url = '/api/v1/metrics/meta/catalog/query';
+    let data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
+    return this._sumoLogicRequest('POST', url, data)
+        .then(result => {
+          let dimensionValues = _.map(result.data.results, resultEntry => {
+            let dimensions = resultEntry.dimensions;
+            let dimensionCount = dimensions.length;
+            let dimension = null;
+            for (let dimensionIndex = 0; dimensionIndex < dimensionCount; dimensionIndex++) {
+              dimension = dimensions[dimensionIndex];
+              if (dimension.key === parameter.trim()) {
+                break;
+              }
+            }
+            return {
+              text: dimension.value,
+              expandable: true
+            };
+          });
+          return _.uniqBy(dimensionValues, 'text');
+        });
   }
 
   getMetadataTags(interpolatedQuery) {
