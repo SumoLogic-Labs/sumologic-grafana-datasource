@@ -104,10 +104,9 @@ A metrics menu opens. Select the name of the data source that you created.
 
 ![data-source](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/select-data-source.png)
 
-
 Enter the query that you want to run.
 
-!(https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/add-query.png)
+![queryx](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/add-query.png)
 
 
 Write the query and click somewhere else, it will show you sample output
@@ -124,7 +123,7 @@ Close the edit box and click **Save**.
 
 To create a template, click the **Settings** icon and select **Templating**.
 
-!(https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/settings-templating.png)
+![templating](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/settings-templating.png)
 
 
 Click the **+NEW** button.
@@ -133,7 +132,7 @@ Click the **+NEW** button.
 
 There are multiple templates. The one that is most customizable with Sumo is the **Query** tempate.  
 
-!(https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/template-types.png)
+![templatetypes](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/template-types.png)
 
 
 Sumo supports four types of query for generating template autocomplete values.
@@ -143,7 +142,7 @@ Sumo supports four types of query for generating template autocomplete values.
 * Metric names
 * Suggestions
 
-** Dimensions
+## Dimensions
 
 
 Format: 
