@@ -1,3 +1,7 @@
+**Note** Information for plugin developers are [at the end of this document](#plugin-development).
+
+
+
 This page describes the sumologic-metrics-grafana-datasource plugin, a datasource plugin for Grafana that can deliver metrics from your Sumo deployment to Grafana. After installing and configuring the plugin, you can query and visualize metrics from Sumo in the Grafana user interface. You initiate a query from the Grafana UI, the search runs on Sumo, and results are returned to Grafana.
 
 The Grafana backend will proxy all requests from the browser, and send them on to the Data Source.
@@ -20,7 +24,7 @@ This beta version of sumologic-metrics-grafana-datasource contains most planned 
 
 
 
-**Note** This plugin is community-supported. For support, add a request in the issues tab. 
+**Note** This plugin is community-supported. For support, add a request in the issues tab.
 
 # Grafana version support
 
@@ -124,7 +128,7 @@ Close the edit box and click **Save**.
 
 # Use a template
 
-To use a template, click the **Settings** icon and select **Templating**.
+To use templating, click the **Settings** icon and select **Templating**.
 
 ![templating](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/settings-templating.png)
 
@@ -133,45 +137,27 @@ Click the **+NEW** button.
 
 ![new-button](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/new-button.png)
 
-There are multiple templates. The one that is most customizable with Sumo is the **Query** tempate.  
+There are multiple template types. The one that is most customizable with Sumo is the **Query** tempate.  
 
 ![templatetypes](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/template-types.png)
 
 
-Sumo supports four types of queries for generating template autocomplete values.
+Sumo supports two types of queries for generating template autocomplete values.
 
-* Dimensions
 * Metadata
 * Metric names
-* Suggestions
-
-## Dimensions
-
-Format: 
-
-`Dimension | <dimensionName> | <Query to run>`
-
-
-where: 
-
-* \<dimensionName\> is the dimension that you want from the query result. For example, if the query narrows it down to five possible dimensions, you can specify which dimension to use to autocomplete the parameter value.
-
-* \<Query to run\> is the query that you want to use to narrow down the autocomplete. 
-
-![query](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/query.png)
-
-Note that preview values are displayed at the bottom of the screenshot above.
-
-If you save the dashboard, you can see the values being autocompleted which were being shown in the preview.
-
-![save](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/statistic.png)
-
 
 ## Metadata
 
+Use this to get a list of values for a particular dimension. The values for the dimensions will populate the dropdown menu for the template variable. This is a workaround for the fact that the current API doesn't quite let us get the values for a dimensions given already existing values for other metadata dimensions without specifying the metrics dimension as well. For example:
+
+`metaTags|_sourceCategory|_contentType=HostMetrics metric=CPU_LoadAvg_1Min`
+
+This will return all the value for dimension `_sourceCategory` given dimension `_contentType` has value `HostMetrics`. In other words, all the source categories that report host metrics via the Sumo Logic host metrics collector source.
+
 Format: 
 
-`Metatags | <dimensionName> | <Query to run>`
+`metatags | <dimensionName> | <Query to run>`
 
 where: 
 
@@ -186,6 +172,12 @@ If you save the dashboard, you can see the values being autocompleted which were
 ![autocomplete](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/cluster.png)
 
 ## Metrics 
+
+Use this to get a list for all metrics being reported given a set of metadata dimensions being set to specified values. For example:
+
+`metrics|_contentType=HostMetrics`
+
+This will produce a lit of metric names reported as host metrics via the Sumo Logic host metrics collector source.
 
 Format:
 
