@@ -5,6 +5,21 @@ The Grafana backend will proxy all requests from the browser, and send them on t
 This beta version of sumologic-metrics-grafana-datasource contains most planned features, but is not yet complete.
 
 
+- [Grafana version support](#grafana-version-support)
+- [Install the plugin](#install-the-plugin)
+  * [Install on Mac](#install-on-mac)
+  * [Install on Ubuntu Linux](#install-on-ubuntu-linux)
+- [Configure the plugin](#configure-the-plugin)
+- [Query metrics in Grafana](#query-metrics-in-grafana)
+- [Plugin development](#plugin-development)
+- [Create a dashboard](#create-a-dashboard)
+- [Use a template](#use-a-template)
+  * [Dimensions](#dimensions)
+  * [Metadata](#metadata)
+  * [Metrics](#metrics)
+
+
+
 **Note** This plugin is community-supported. For support, add a request in the issues tab. 
 
 
@@ -52,9 +67,8 @@ Where `path_to_plugins`  is the path to the plugins folder in your Grafana envir
 5. Select **Sumo Logic Metrics** from the **Type** dropdown.
 
 6. In the **Http settings** section:
-   -In the **URL** field, enter the API endpoint for your deployment. To determine the API endpoint, see [Sumo Logic Endpoints and Firewall Security](https://help.sumologic.com/APIs/General-API-Information/Sumo-Logic-Endpoints-and-Firewall-Security) in Sumo help.
-
-   -In the Access field, leave “proxy” selected. 
+   - In the **URL** field, enter the API endpoint for your deployment. To determine the API endpoint, see [Sumo Logic Endpoints and Firewall Security](https://help.sumologic.com/APIs/General-API-Information/Sumo-Logic-Endpoints-and-Firewall-Security) in Sumo help.
+   - In the **Access** field, leave “proxy” selected. 
 
 7. In the **Http Auth** section, select the **Basic Auth** checkbox. The **Basic Auth Details** section appears.
 
@@ -165,7 +179,7 @@ If you save the dashboard, you can see the values being autocompleted which were
 ![save](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/statistic.png)
 
 
-** Metadata
+## Metadata
 
 Format: 
 
@@ -177,18 +191,13 @@ where:
 
 * <Query to run> is the query that you want to use to narrow down the autocomplete. 
 
-
-Preview values
-
 ![preview](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/preview-values.png)
-
 
 If you save the dashboard, you can see the values being autocompleted which were shown in the preview.
 
 ![autocomplete](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/cluster.png)
 
-
-## Metrics : 
+## Metrics 
 
 Format:
 
@@ -197,7 +206,7 @@ Format:
 
 where:
 
-** <Query to run> is the query that you want to use to narrow down the autocomplete. 
+* <Query to run> is the query that you want to use to narrow down the autocomplete. 
 
 You can see the preview values like following: 
 
