@@ -11,12 +11,12 @@ This beta version of sumologic-metrics-grafana-datasource contains most planned 
   * [Install on Ubuntu Linux](#install-on-ubuntu-linux)
 - [Configure the plugin](#configure-the-plugin)
 - [Query metrics in Grafana](#query-metrics-in-grafana)
-- [Plugin development](#plugin-development)
 - [Create a dashboard](#create-a-dashboard)
 - [Use a template](#use-a-template)
   * [Dimensions](#dimensions)
   * [Metadata](#metadata)
   * [Metrics](#metrics)
+- [Plugin development](#plugin-development)
 
 
 
@@ -59,6 +59,7 @@ Where `path_to_plugins`  is the path to the plugins folder in your Grafana envir
 1. In Sumo, generate an Access ID and Key. For instructions, see [Access Keys](https://help.sumologic.com/Manage/Security/Access-Keys). Save the ID and Key, as you will enter them later in this procedure. 
 
 2. On the Grafana Home Dashboard, click **Add data source**.
+![datasource](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/add-datasource.png)
 
 3. Enter a name for the plugin in the **Name** field.  
 
@@ -71,6 +72,7 @@ Where `path_to_plugins`  is the path to the plugins folder in your Grafana envir
    - In the **Access** field, leave “proxy” selected. 
 
 7. In the **Http Auth** section, select the **Basic Auth** checkbox. The **Basic Auth Details** section appears.
+![dash-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/basic-auth.png)
 
 8. In the **Basic Auth Details** section:
    - In the **User** field, enter the Access ID you generated in step 1.
@@ -80,20 +82,10 @@ Where `path_to_plugins`  is the path to the plugins folder in your Grafana envir
 
 # Query metrics in Grafana
 
-You can query your Sumo metrics using the same query syntax you use in the the Sumo UI. For more information, see [Metrics Queries](https://help.sumologic.com/Metrics/Working-with-Metrics/Metrics-Queries) in Sumo help
+You can query your Sumo metrics using the same query syntax you use in the the Sumo UI. For more information, see [Metrics Queries](https://help.sumologic.com/Metrics/Working-with-Metrics/Metrics-Queries) in Sumo help.
 
 
-# Plugin development
-The layout of this repository is based on https://github.com/grafana/typescript-template-datasource.
 
-
-1. Run `npm install` to fetch all the dependencies.
-2. If you don't already have Grunt, install it with: 
-`sudo npm install -g grunt-cli`. 
-3. Run grunt to build the plugin into `dist`.
-4. While developing, run `grunt watch` to see errors and warnings when saving files.
-
-Make all changes need to be made in the `src` directory. Once you are happy with the changes, remove the previous versions of the plugin from Grafana's plugin directory, then copy the `dist` folder (making sure to run grunt first!) to the plugin directory.
 
 # Create a dashboard
 
@@ -123,7 +115,7 @@ Enter the query that you want to run.
 ![queryx](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/add-query.png)
 
 
-Write the query and click somewhere else, it will show you sample output
+Write the query and click somewhere else, it will show you sample output.
 
 ![query](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/results.png)
 
@@ -135,7 +127,7 @@ Close the edit box and click **Save**.
 
 # Use a template
 
-To create a template, click the **Settings** icon and select **Templating**.
+To use a template, click the **Settings** icon and select **Templating**.
 
 ![templating](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/settings-templating.png)
 
@@ -149,7 +141,7 @@ There are multiple templates. The one that is most customizable with Sumo is the
 ![templatetypes](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/template-types.png)
 
 
-Sumo supports four types of query for generating template autocomplete values.
+Sumo supports four types of queries for generating template autocomplete values.
 
 * Dimensions
 * Metadata
@@ -158,7 +150,6 @@ Sumo supports four types of query for generating template autocomplete values.
 
 ## Dimensions
 
-
 Format: 
 
 `Dimension | <dimensionName> | <Query to run>`
@@ -166,13 +157,13 @@ Format:
 
 where: 
 
-* <dimensionName> is the dimension that you want from the query result. For example, if the query narrows it down to five possible dimensions, you can specify which dimension to use to autocomplete the parameter value.
+* \<dimensionName\> is the dimension that you want from the query result. For example, if the query narrows it down to five possible dimensions, you can specify which dimension to use to autocomplete the parameter value.
 
-* <Query to run> is the query that you want to use to narrow down the autocomplete. 
+* \<Query to run\> is the query that you want to use to narrow down the autocomplete. 
 
 ![query](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/query.png)
 
-Note that preview values are displayed at the bottom of the screenshot above..
+Note that preview values are displayed at the bottom of the screenshot above.
 
 If you save the dashboard, you can see the values being autocompleted which were being shown in the preview.
 
@@ -187,9 +178,9 @@ Format:
 
 where: 
 
-* <dimensionName> is the dimension that you want from the query result. For example, if the query narrows it down to five possible dimensions, you can specify which dimension to use to autocomplete the parameter value.
+* \<dimensionName\> is the dimension that you want from the query result. For example, if the query narrows it down to five possible dimensions, you can specify which dimension to use to autocomplete the parameter value.
 
-* <Query to run> is the query that you want to use to narrow down the autocomplete. 
+* \<Query to run\> is the query that you want to use to narrow down the autocomplete. 
 
 ![preview](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/preview-values.png)
 
@@ -206,7 +197,7 @@ Format:
 
 where:
 
-* <Query to run> is the query that you want to use to narrow down the autocomplete. 
+* \<Query to run\> is the query that you want to use to narrow down the autocomplete. 
 
 You can see the preview values like following: 
 
@@ -216,3 +207,15 @@ You can see the preview values like following:
 If you save the dashboard, you can see the values being autocompleted which were in the preview.
 
 ![autocomplete](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/avail-metrics.png)
+
+
+# Plugin development
+The layout of this repository is based on https://github.com/grafana/typescript-template-datasource.
+
+1. Run `npm install` to fetch all the dependencies.
+2. If you don't already have Grunt, install it with: 
+`sudo npm install -g grunt-cli`. 
+3. Run grunt to build the plugin into `dist`.
+4. While developing, run `grunt watch` to see errors and warnings when saving files.
+
+Make all changes need to be made in the `src` directory. Once you are happy with the changes, remove the previous versions of the plugin from Grafana's plugin directory, then copy the `dist` folder (making sure to run grunt first!) to the plugin directory.
