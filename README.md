@@ -22,8 +22,6 @@ This beta version of sumologic-metrics-grafana-datasource contains most planned 
 
 **Note** This plugin is community-supported. For support, add a request in the issues tab. 
 
-
-
 # Grafana version support
 
 The plugin has been tested with Grafana v4.4.3 and v4.5.2.
@@ -31,7 +29,6 @@ The plugin has been tested with Grafana v4.4.3 and v4.5.2.
 This branch supports Grafana v4.5.x.
 
 A version that works with Grafana v4.4.x is available at https://github.com/SumoLogic/sumo-logic-metrics-datasource/tree/v4.4.x.
-
 
 # Install the plugin
 
@@ -44,13 +41,13 @@ To install the beta version, copy the `dist` directory of this repository to the
 
 To install the plugin on a Mac, with Grafana installed using Homebrew:
 
-`cp -r dist /usr/local/var/lib/grafana/plugins/sumo-logic-metrics-datasource && brew services restart grafana`
+`cp -r dist /usr/local/var/lib/grafana/plugins/sumologic-metrics-grafana-datasource && brew services restart grafana`
 
 ## Install on Ubuntu Linux
 
 To install the plugin on Ubuntu Linux:
 
-`sudo cp -r dist /path_to_plugins/sumo-logic-metrics-datasource && sudo /bin/systemctl restart grafana-server`
+`sudo cp -r dist /path_to_plugins/sumologic-metrics-grafana-datasource && sudo /bin/systemctl restart grafana-server`
 
 Where `path_to_plugins`  is the path to the plugins folder in your Grafana environment. The plugins folder is typically `/var/lib/grafana/`, but it may be different in your environment. 
 
