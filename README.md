@@ -1,6 +1,6 @@
-This page describes the sumologic-metrics-grafana-datasource plugin, a datasource plugin for Grafana that can deliver metrics from your Sumo deployment to Grafana. After installing and configuring the plugin, you can query and visualize metrics from Sumo in the Grafana user interface. You initiate a query from the Grafana UI, the search runs on Sumo, and results are returned to Grafana.
+This page describes the sumologic-metrics-grafana-datasource plugin, a data source plugin for Grafana that can deliver metrics from your Sumo deployment to Grafana. After installing and configuring the plugin, you can query and visualize metrics from Sumo in the Grafana user interface. You initiate a query from the Grafana UI, the search runs on Sumo, and results are returned to Grafana.
 
-The Grafana backend will proxy all requests from the browser, and send them on to the Data Source.
+The Grafana backend will proxy all requests from the browser, and send them on to the data source.
 
 This beta version of sumologic-metrics-grafana-datasource contains most planned features, but is not yet complete.
 
@@ -12,12 +12,11 @@ This beta version of sumologic-metrics-grafana-datasource contains most planned 
 - [Configure the plugin](#configure-the-plugin)
 - [Query metrics in Grafana](#query-metrics-in-grafana)
 - [Create a dashboard](#create-a-dashboard)
-- [Use a template](#use-a-template)
+- [Templating](#templating)
   * [Dimensions](#dimensions)
   * [Metadata](#metadata)
   * [Metrics](#metrics)
 - [Plugin development](#plugin-development)
-
 
 
 **Note** This plugin is community-supported. For support, add a request in the issues tab. 
@@ -112,7 +111,7 @@ Enter the query that you want to run.
 ![queryx](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/add-query.png)
 
 
-Write the query and click somewhere else, it will show you sample output.
+Write the query. To see the results, hit Tab to de-focus the query text box, or click outside of the query text box.
 
 ![query](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/results.png)
 
@@ -122,7 +121,7 @@ Close the edit box and click **Save**.
 ![save](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/save.png)
 
 
-# Use a template
+# Templating
 
 To use a template, click the **Settings** icon and select **Templating**.
 
@@ -133,7 +132,7 @@ Click the **+NEW** button.
 
 ![new-button](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/new-button.png)
 
-There are multiple templates. The one that is most customizable with Sumo is the **Query** tempate.  
+There are multiple type of template variables. The one that is most customizable with Sumo is the **Query** tempate.  
 
 ![templatetypes](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/template-types.png)
 
