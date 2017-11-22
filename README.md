@@ -15,12 +15,12 @@ The plugin has been tested with Grafana v4.4.3 and v4.5.2.
 
 This branch supports Grafana v4.5.x.
 
-A version that works with Grafana v4.4.x is available at  [https://github.com/SumoLogic/sumo-logic-metrics-datasource/tree/v4.4.x].
+A version that works with Grafana v4.4.x is available at https://github.com/SumoLogic/sumo-logic-metrics-datasource/tree/v4.4.x.
 
 
 # Install the plugin
 
-The GA version of sumologic-metrics-grafana-datasource will be available on [https://grafana.com/plugins]. At that point, the plugin will be installable using the Grafana command-line interface. 
+The GA version of sumologic-metrics-grafana-datasource will be available on https://grafana.com/plugins. At that point, the plugin will be installable using the Grafana command-line interface. 
 
 To install the beta version, copy the `dist` directory of this repository to the plugin directory of your Grafana installation, then restart Grafana. Environment-specific instructions follow.
 
@@ -49,7 +49,6 @@ Where `path_to_plugins`  is the path to the plugins folder in your Grafana envir
 
 4. Deselect the **Default** checkbox, unless you want to make the Sumo Logic datasource your default datasource type. 
 
-
 5. Select **Sumo Logic Metrics** from the **Type** dropdown.
 
 6. In the **Http settings** section:
@@ -65,14 +64,13 @@ Where `path_to_plugins`  is the path to the plugins folder in your Grafana envir
 
 9. Click **Add** to save the new data source. 
 
-
 # Query metrics in Grafana
 
 You can query your Sumo metrics using the same query syntax you use in the the Sumo UI. For more information, see [Metrics Queries](https://help.sumologic.com/Metrics/Working-with-Metrics/Metrics-Queries) in Sumo help
 
 
 # Plugin development
-The layout of this repository is based on [https://github.com/grafana/typescript-template-datasource].
+The layout of this repository is based on https://github.com/grafana/typescript-template-datasource.
 
 
 1. Run `npm install` to fetch all the dependencies.
@@ -99,7 +97,8 @@ Click **Panel Title**.
 
 Click **Edit** in the menu that pops up.
 
-![edit-button](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/edit-button.png)
+![panel-title](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/edit-button.png)
+
 
 A metrics menu opens. Select the name of the data source that you created.
 
