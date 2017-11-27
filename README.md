@@ -15,7 +15,6 @@ This beta version of sumologic-metrics-grafana-datasource contains most planned 
 - [Query metrics in Grafana](#query-metrics-in-grafana)
 - [Create a dashboard](#create-a-dashboard)
 - [Templating](#templating)
-  * [Dimensions](#dimensions)
   * [Metadata](#metadata)
   * [Metrics](#metrics)
 - [Plugin development](#plugin-development)
