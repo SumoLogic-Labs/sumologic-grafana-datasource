@@ -155,7 +155,11 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     // and are simply trying to fish out all the values for dimension
                     // "_sourceCategory"
                     var url = '/api/v1/metrics/meta/catalog/query';
-                    var data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
+                    var data = {
+                        query: actualQuery,
+                        offset: 0,
+                        limit: 100000
+                    };
                     return this._sumoLogicRequest('POST', url, data)
                         .then(function (result) {
                         var dimensionValues = lodash_1.default.map(result.data.results, function (resultEntry) {
@@ -236,7 +240,11 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     // and are simply trying to fish out all the values for metatag
                     // "_sourceCategory".
                     var url = '/api/v1/metrics/meta/catalog/query';
-                    var data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
+                    var data = {
+                        query: actualQuery,
+                        offset: 0,
+                        limit: 100000
+                    };
                     return this._sumoLogicRequest('POST', url, data)
                         .then(function (result) {
                         var metaTagValues = lodash_1.default.map(result.data.results, function (resultEntry) {
@@ -304,7 +312,11 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     // and are simply trying to fish out all the values for metric to get
                     // a full list of all metrics available for _contentType=HostMetrics.
                     var url = '/api/v1/metrics/meta/catalog/query';
-                    var data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
+                    var data = {
+                        query: actualQuery,
+                        offset: 0,
+                        limit: 100000
+                    };
                     return this._sumoLogicRequest('POST', url, data)
                         .then(function (result) {
                         var metricNames = lodash_1.default.map(result.data.results, function (resultEntry) {
@@ -382,7 +394,17 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     var startTime = this.start || 0;
                     var endTime = this.end || 0;
                     var url = '/api/v1/metrics/suggest/autocomplete';
-                    var data = "\n      {\n        \"queryId\": \"1\",\n        \"query\": \"" + finalQuery + "\",\n        \"pos\": " + position + ",\n        \"apiVersion\": \"0.2.0\",\n        \"queryStartTime\": " + startTime + ",\n        \"queryEndTime\": " + endTime + ",\n        \"requestedSectionsAndCounts\": {\n          \"values\": 1000\n        }\n      }";
+                    var data = {
+                        queryId: 1,
+                        query: finalQuery,
+                        pos: position,
+                        apiVersion: "0.2.0",
+                        queryStartTime: startTime,
+                        queryEndTime: endTime,
+                        requestedSectionsAndCounts: {
+                            values: 1000
+                        }
+                    };
                     return this._sumoLogicRequest('POST', url, data)
                         .then(function (result) {
                         return lodash_1.default.map(result.data.suggestions[0].items, function (suggestion) {

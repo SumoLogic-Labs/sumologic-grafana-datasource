@@ -165,7 +165,11 @@ export default class SumoLogicMetricsDatasource {
     // "_sourceCategory"
 
     let url = '/api/v1/metrics/meta/catalog/query';
-    let data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
+    let data = {
+      query: actualQuery,
+      offset: 0,
+      limit: 100000
+    };
     return this._sumoLogicRequest('POST', url, data)
       .then(result => {
         let dimensionValues = _.map(result.data.results, resultEntry => {
@@ -251,7 +255,11 @@ export default class SumoLogicMetricsDatasource {
     // "_sourceCategory".
 
     let url = '/api/v1/metrics/meta/catalog/query';
-    let data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
+    let data = {
+      query: actualQuery,
+      offset: 0,
+      limit: 100000
+    };
     return this._sumoLogicRequest('POST', url, data)
       .then(result => {
         let metaTagValues = _.map(result.data.results, resultEntry => {
@@ -323,7 +331,11 @@ export default class SumoLogicMetricsDatasource {
     // a full list of all metrics available for _contentType=HostMetrics.
 
     let url = '/api/v1/metrics/meta/catalog/query';
-    let data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
+    let data = {
+      query: actualQuery,
+      offset: 0,
+      limit: 100000
+    };
     return this._sumoLogicRequest('POST', url, data)
       .then(result => {
         let metricNames = _.map(result.data.results, resultEntry => {
@@ -407,18 +419,17 @@ export default class SumoLogicMetricsDatasource {
     let startTime = this.start || 0;
     let endTime = this.end || 0;
     let url = '/api/v1/metrics/suggest/autocomplete';
-    let data = `
-      {
-        "queryId": "1",
-        "query": "${finalQuery}",
-        "pos": ${position},
-        "apiVersion": "0.2.0",
-        "queryStartTime": ${startTime},
-        "queryEndTime": ${endTime},
-        "requestedSectionsAndCounts": {
-          "values": 1000
-        }
-      }`;
+    let data = {
+      queryId: 1,
+      query: finalQuery,
+      pos: position,
+      apiVersion: "0.2.0",
+      queryStartTime: startTime,
+      queryEndTime: endTime,
+      requestedSectionsAndCounts: {
+        values: 1000
+      }
+    };
     return this._sumoLogicRequest('POST', url, data)
       .then(result => {
         return _.map(result.data.suggestions[0].items, suggestion => {
