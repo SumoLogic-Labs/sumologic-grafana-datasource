@@ -323,6 +323,11 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     var key = split[1];
                     // The query to constrain the result - a metrics selector.
                     var metricsSelector = split[2];
+                    // PLEASE NOTE THAT THIS IS USING AN UNOFFICIAL APU AND IN
+                    // GENERAL EXPERIMENTAL - BUT IT IS BETTER THAN NOTHING AND
+                    // IT DOES IN FACT WORK. WE WILL UPDATE TEMPLATE VARIABLE
+                    // QUERY FUNCTIONALITY ONCE AN OFFICIAL PUBLIC API IS OUT.
+                    //
                     // Returns the values for the key specified as the parameter
                     // given the metrics selector given in query. This is a much
                     // more efficient way to get the value for a key than the
@@ -374,9 +379,10 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     // Create the final query with the key appended.
                     var finalQuery = metricsSelector + " " + key + "=";
                     var position = finalQuery.length;
+                    var startTime = this.start || 0;
+                    var endTime = this.end || 0;
                     var url = '/api/v1/metrics/suggest/autocomplete';
-                    var data = '{"queryId":"1","query":"' + finalQuery + '","pos":' + position +
-                        ',"apiVersion":"0.2.0","requestedSectionsAndCounts":{"values":1000}}';
+                    var data = "\n      {\n        \"queryId\": \"1\",\n        \"query\": \"" + finalQuery + "\",\n        \"pos\": " + position + ",\n        \"apiVersion\": \"0.2.0\",\n        \"queryStartTime\": " + startTime + ",\n        \"queryEndTime\": " + endTime + ",\n        \"requestedSectionsAndCounts\": {\n          \"values\": 1000\n        }\n      }";
                     return this._sumoLogicRequest('POST', url, data)
                         .then(function (result) {
                         return lodash_1.default.map(result.data.suggestions[0].items, function (suggestion) {

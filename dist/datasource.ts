@@ -346,6 +346,11 @@ export default class SumoLogicMetricsDatasource {
     // The query to constrain the result - a metrics selector.
     let metricsSelector = split[2];
 
+    // PLEASE NOTE THAT THIS IS USING AN UNOFFICIAL APU AND IN
+    // GENERAL EXPERIMENTAL - BUT IT IS BETTER THAN NOTHING AND
+    // IT DOES IN FACT WORK. WE WILL UPDATE TEMPLATE VARIABLE
+    // QUERY FUNCTIONALITY ONCE AN OFFICIAL PUBLIC API IS OUT.
+    //
     // Returns the values for the key specified as the parameter
     // given the metrics selector given in query. This is a much
     // more efficient way to get the value for a key than the
@@ -399,9 +404,21 @@ export default class SumoLogicMetricsDatasource {
     let finalQuery = metricsSelector + " " + key + "=";
     let position = finalQuery.length;
 
+    let startTime = this.start || 0;
+    let endTime = this.end || 0;
     let url = '/api/v1/metrics/suggest/autocomplete';
-    let data = '{"queryId":"1","query":"' + finalQuery + '","pos":' + position +
-      ',"apiVersion":"0.2.0","requestedSectionsAndCounts":{"values":1000}}';
+    let data = `
+      {
+        "queryId": "1",
+        "query": "${finalQuery}",
+        "pos": ${position},
+        "apiVersion": "0.2.0",
+        "queryStartTime": ${startTime},
+        "queryEndTime": ${endTime},
+        "requestedSectionsAndCounts": {
+          "values": 1000
+        }
+      }`;
     return this._sumoLogicRequest('POST', url, data)
       .then(result => {
         return _.map(result.data.suggestions[0].items, suggestion => {
@@ -411,10 +428,6 @@ export default class SumoLogicMetricsDatasource {
         });
       });
   }
-
-
-
-
 
   // Called by Grafana to execute a metrics query.
   query(options) {
