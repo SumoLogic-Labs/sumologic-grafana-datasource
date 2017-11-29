@@ -14,6 +14,10 @@ export default class SumoLogicMetricsDatasource {
     constructor(instanceSettings: any, backendSrv: any, templateSrv: any, $q: any);
     testDatasource(): any;
     metricFindQuery(query: any): any;
+    getAvailableDimensions(interpolatedQuery: any): any;
+    getAvailableMetaTags(interpolatedQuery: any): any;
+    getAvailableMetrics(interpolatedQuery: any): any;
+    getValuesFromAutocomplete(interpolatedQuery: any): any;
     query(options: any): any;
     performSuggestQuery(query: any): any;
     transformMetricData(targets: any, responses: any): any[];

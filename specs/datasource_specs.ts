@@ -144,7 +144,7 @@ describe('SumologicDatasource', function() {
       });
       it('when asked for metadata', function () {
         let testQuery = 'metadata| _sourceName| test';
-        return ctx.ds.getMetadataTags(testQuery).then(function (results) {
+        return ctx.ds.getAvailableMetaTags(testQuery).then(function (results) {
           let _sourceNameMetadataList = _.map(results, result => result.text);
           expect(_sourceNameMetadataList).to.eql(['HostMetrics1', 'HostMetrics2']);
         });

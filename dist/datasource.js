@@ -73,66 +73,346 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     // The catalog query API returns many duplicate results and this
                     // could be a problem. Maybe figure out how to do the same thing
                     // with the autocomplete API?
-                    if (interpolated.startsWith("metaTags|")) {
-                        var split = interpolated.split("|");
-                        var parameter = split[1];
-                        var actualQuery = split[2];
-                        var url = '/api/v1/metrics/meta/catalog/query';
-                        var data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
-                        return this._sumoLogicRequest('POST', url, data)
-                            .then(function (result) {
-                            var metaTagValues = lodash_1.default.map(result.data.results, function (resultEntry) {
-                                var metaTags = resultEntry.metaTags;
-                                var metaTagCount = metaTags.length;
-                                var metaTag = null;
-                                for (var metaTagIndex = 0; metaTagIndex < metaTagCount; metaTagIndex++) {
-                                    metaTag = metaTags[metaTagIndex];
-                                    if (metaTag.key === parameter) {
-                                        break;
-                                    }
-                                }
-                                return {
-                                    text: metaTag.value,
-                                    expandable: true
-                                };
-                            });
-                            return lodash_1.default.uniqBy(metaTagValues, 'text');
-                        });
+                    if (interpolated.startsWith("dimensions|")) {
+                        return this.getAvailableDimensions(interpolated);
+                    }
+                    else if (interpolated.startsWith("metaTags|")) {
+                        return this.getAvailableMetaTags(interpolated);
                     }
                     else if (interpolated.startsWith("metrics|")) {
-                        var split = interpolated.split("|");
-                        var actualQuery = split[1];
-                        var url = '/api/v1/metrics/meta/catalog/query';
-                        var data = '{"query":"' + actualQuery + '", "offset":0, "limit":100000}';
-                        return this._sumoLogicRequest('POST', url, data)
-                            .then(function (result) {
-                            var metricNames = lodash_1.default.map(result.data.results, function (resultEntry) {
-                                var name = resultEntry.name;
-                                return {
-                                    text: name,
-                                    expandable: true
-                                };
-                            });
-                            return lodash_1.default.uniqBy(metricNames, 'text');
-                        });
+                        return this.getAvailableMetrics(interpolated);
                     }
-                    else if (interpolated.startsWith("x-tokens|")) {
-                        var split = interpolated.split("|");
-                        var actualQuery = split[1];
-                        var url = '/api/v1/metrics/suggest/autocomplete';
-                        var data = '{"queryId":"1","query":"' + actualQuery + '","pos":0,"apiVersion":"0.2.0",' +
-                            '"requestedSectionsAndCounts":{"tokens":1000}}';
-                        return this._sumoLogicRequest('POST', url, data)
-                            .then(function (result) {
-                            return lodash_1.default.map(result.data.suggestions[0].items, function (suggestion) {
-                                return {
-                                    text: suggestion.display,
-                                };
-                            });
-                        });
+                    else if (interpolated.startsWith("values|")) {
+                        return this.getValuesFromAutocomplete(interpolated);
                     }
                     // Unknown query type - error.
                     return this.$q.reject("Unknown metric find query: " + query);
+                };
+                SumoLogicMetricsDatasource.prototype.getAvailableDimensions = function (interpolatedQuery) {
+                    var split = interpolatedQuery.split("|");
+                    // The metatag whose values we want to enumerate.
+                    var parameter = split[1];
+                    // The query to constrain the result - a metrics selector.
+                    var actualQuery = split[2];
+                    // PLEASE NOTE THAT THIS IS USING AN UNOFFICIAL API AND IN
+                    // GENERAL EXPERIMENTAL - BUT IT IS BETTER THAN NOTHING AND
+                    // IT DOES IN FACT WORK. WE WILL UPDATE TEMPLATE VARIABLE
+                    // QUERY FUNCTIONALITY ONCE AN OFFICIAL PUBLIC API IS OUT.
+                    //
+                    // This gives us the values of the dimension given in parameter.
+                    // In Sumo Logic, a time series is associated with dimensions, and
+                    // metatags. Dimensions are key-value pairs that are part of the
+                    // identity of the time series. Metatags are additional key-value
+                    // pairs that are NOT part of the identity of the time series.
+                    //
+                    // We are using the inofficial catalog query endpoint here.
+                    // This endpoint expects a Sumo Logic metrics selector and will
+                    // return all metrics known given the selector, along with all
+                    // metatags and dimensions for those metrics. We will then look
+                    // through all the returned dimensions that match the specified
+                    // parameter and collect the distinct set of values.
+                    //
+                    // For example, given the following query for the template variable:
+                    //
+                    // dimensions|DBInstanceIdentifier|namespace=AWS/RDS metric=CPUUtilization
+                    //
+                    // This produces a result like the following:
+                    //
+                    // {
+                    //   "results": [
+                    //   {
+                    //     "name": "CPUUtilization",
+                    //     "dimensions": [
+                    //       {
+                    //         "key": "DBInstanceIdentifier",
+                    //         "value": "prod-analytics-rds-2017-08-15-2"
+                    //       },
+                    //       {
+                    //         "key": "Statistic",
+                    //         "value": "Sum"
+                    //       },
+                    //       {
+                    //         "key": "metric",
+                    //         "value": "CPUUtilization"
+                    //       },
+                    //     ],
+                    //     "metaTags": [
+                    //       {
+                    //         "key": "_sourceCategory",
+                    //         "value": "aws/cloudwatch"
+                    //       },
+                    //       {
+                    //         "key": "_contentType",
+                    //         "value": "AwsCloudWatch"
+                    //       },
+                    //       ...
+                    //     ]
+                    //   },
+                    //   ...
+                    // ]
+                    //
+                    // We are looking through the entire result, which can be very verbose
+                    // and are simply trying to fish out all the values for dimension
+                    // "_sourceCategory"
+                    var url = '/api/v1/metrics/meta/catalog/query';
+                    var data = {
+                        query: actualQuery,
+                        offset: 0,
+                        limit: 100000
+                    };
+                    return this._sumoLogicRequest('POST', url, data)
+                        .then(function (result) {
+                        var dimensionValues = lodash_1.default.map(result.data.results, function (resultEntry) {
+                            var dimensions = resultEntry.dimensions;
+                            var dimensionCount = dimensions.length;
+                            var dimension = null;
+                            for (var dimensionIndex = 0; dimensionIndex < dimensionCount; dimensionIndex++) {
+                                dimension = dimensions[dimensionIndex];
+                                if (dimension.key === parameter.trim()) {
+                                    break;
+                                }
+                            }
+                            return {
+                                text: dimension.value,
+                                expandable: true
+                            };
+                        });
+                        return lodash_1.default.uniqBy(dimensionValues, 'text');
+                    });
+                };
+                SumoLogicMetricsDatasource.prototype.getAvailableMetaTags = function (interpolatedQuery) {
+                    var split = interpolatedQuery.split("|");
+                    // The metatag whose values we want to enumerate.
+                    var parameter = split[1];
+                    // The query to constrain the result - a metrics selector.
+                    var actualQuery = split[2];
+                    // PLEASE NOTE THAT THIS IS USING AN UNOFFICIAL APU AND IN
+                    // GENERAL EXPERIMENTAL - BUT IT IS BETTER THAN NOTHING AND
+                    // IT DOES IN FACT WORK. WE WILL UPDATE TEMPLATE VARIABLE
+                    // QUERY FUNCTIONALITY ONCE AN OFFICIAL PUBLIC API IS OUT.
+                    //
+                    // This gives us the values of the metatag given in parameter.
+                    // In Sumo Logic, a time series is associated with dimensions, and
+                    // metatags. Dimensions are key-value pairs that are part of the
+                    // identity of the time series. Metatags are additional key-value
+                    // pairs that are NOT part of the identity of the time series.
+                    //
+                    // We are using the inofficial catalog query endpoint here.
+                    // This endpoint expects a Sumo Logic metrics selector and will
+                    // return all metrics known given the selector, along with all
+                    // metatags and dimensions for those metrics. We will then look
+                    // through all the returned metatags that match the specified
+                    // parameter and collect the distinct set of values.
+                    //
+                    // For example, given the following query for the template variable:
+                    //
+                    // metaTags|_sourceCategory|_contentType=HostMetrics metric=CPU_LoadAvg_1Min
+                    //
+                    // This produces a result like the following:
+                    //
+                    // {
+                    //   "results": [
+                    //   {
+                    //     "name": "CPU_LoadAvg_1min",
+                    //     "dimensions": [
+                    //       {
+                    //         "key": "metric",
+                    //         "value": "CPU_LoadAvg_1min"
+                    //       },
+                    //       ...
+                    //     ],
+                    //     "metaTags": [
+                    //       {
+                    //         "key": "_sourceCategory",
+                    //         "value": "forge"
+                    //       },
+                    //       {
+                    //         "key": "_contentType",
+                    //         "value": "HostMetrics"
+                    //       },
+                    //       ...
+                    //     ]
+                    //   },
+                    //   ...
+                    // ]
+                    //
+                    // We are looking through the entire result, which can be very verbose
+                    // and are simply trying to fish out all the values for metatag
+                    // "_sourceCategory".
+                    var url = '/api/v1/metrics/meta/catalog/query';
+                    var data = {
+                        query: actualQuery,
+                        offset: 0,
+                        limit: 100000
+                    };
+                    return this._sumoLogicRequest('POST', url, data)
+                        .then(function (result) {
+                        var metaTagValues = lodash_1.default.map(result.data.results, function (resultEntry) {
+                            var metaTags = resultEntry.metaTags;
+                            var metaTagCount = metaTags.length;
+                            var metaTag = null;
+                            for (var metaTagIndex = 0; metaTagIndex < metaTagCount; metaTagIndex++) {
+                                metaTag = metaTags[metaTagIndex];
+                                if (metaTag.key === parameter) {
+                                    break;
+                                }
+                            }
+                            return {
+                                text: metaTag.value,
+                                expandable: true
+                            };
+                        });
+                        return lodash_1.default.uniqBy(metaTagValues, 'text');
+                    });
+                };
+                SumoLogicMetricsDatasource.prototype.getAvailableMetrics = function (interpolatedQuery) {
+                    var split = interpolatedQuery.split("|");
+                    // The query to constrain the result - a metrics selector.
+                    var actualQuery = split[1];
+                    // PLEASE NOTE THAT THIS IS USING AN UNOFFICIAL APU AND IN
+                    // GENERAL EXPERIMENTAL - BUT IT IS BETTER THAN NOTHING AND
+                    // IT DOES IN FACT WORK. WE WILL UPDATE TEMPLATE VARIABLE
+                    // QUERY FUNCTIONALITY ONCE AN OFFICIAL PUBLIC API IS OUT.
+                    //
+                    // For context, please see getAvailableDimensions() or
+                    // getAvailableMetatags. We are using the same unofficial endpoint
+                    // here to snarf up all the actual metrics that are available
+                    // given the supplied metrics selector in query.
+                    //
+                    // For example, given the following query for the template variable:
+                    //
+                    // metrics|_contentType=HostMetrics
+                    //
+                    // This produces a result like the following:
+                    //
+                    // {
+                    //   "results": [
+                    //   {
+                    //     "name": "Disk_WriteBytes",
+                    //     "dimensions": [
+                    //       ...
+                    //     ],
+                    //     "metaTags": [
+                    //       ...
+                    //     ]
+                    //   },
+                    //   {
+                    //     "name": "Disk_InodesAvailable",
+                    //     "dimensions": [
+                    //       ...
+                    //     ],
+                    //     "metaTags": [
+                    //       ...
+                    //     ]
+                    //   },
+                    //   ...
+                    // ]
+                    //
+                    // We are looking through the entire result, which can be very verbose
+                    // and are simply trying to fish out all the values for metric to get
+                    // a full list of all metrics available for _contentType=HostMetrics.
+                    var url = '/api/v1/metrics/meta/catalog/query';
+                    var data = {
+                        query: actualQuery,
+                        offset: 0,
+                        limit: 100000
+                    };
+                    return this._sumoLogicRequest('POST', url, data)
+                        .then(function (result) {
+                        var metricNames = lodash_1.default.map(result.data.results, function (resultEntry) {
+                            var name = resultEntry.name;
+                            return {
+                                text: name,
+                                expandable: true
+                            };
+                        });
+                        return lodash_1.default.uniqBy(metricNames, 'text');
+                    });
+                };
+                SumoLogicMetricsDatasource.prototype.getValuesFromAutocomplete = function (interpolatedQuery) {
+                    var split = interpolatedQuery.split("|");
+                    // The metatag whose values we want to enumerate.
+                    var key = split[1];
+                    // The query to constrain the result - a metrics selector.
+                    var metricsSelector = split[2];
+                    // PLEASE NOTE THAT THIS IS USING AN UNOFFICIAL APU AND IN
+                    // GENERAL EXPERIMENTAL - BUT IT IS BETTER THAN NOTHING AND
+                    // IT DOES IN FACT WORK. WE WILL UPDATE TEMPLATE VARIABLE
+                    // QUERY FUNCTIONALITY ONCE AN OFFICIAL PUBLIC API IS OUT.
+                    //
+                    // Returns the values for the key specified as the parameter
+                    // given the metrics selector given in query. This is a much
+                    // more efficient way to get the value for a key than the
+                    // method used in getAvailableMetaTags() which might return
+                    // a lot of duplicated data.
+                    //
+                    // Given key '_sourceCategory' and metrics selector
+                    // '_contentType=HostMetrics metric=CPU_LoadAvg_1Min' this
+                    // will ask the autocomplete endpoint for all values for
+                    // key '_sourceCategory' by constructing the following
+                    // autocomplete query:
+                    //
+                    //  _contentType=HostMetrics metric=CPU_LoadAvg_1Min _sourceCategory=
+                    //
+                    // We also need to tell the autocomplete endpopint the
+                    // position of the "cursor", so it notes from where in the
+                    // query it should find completitions from. The result will
+                    // look something like this:
+                    //
+                    // {
+                    //   "queryId": 0,
+                    //   "query": "_contentType=HostMetrics metric=CPU_LoadAvg_1Min _sourceCategory=",
+                    //   "pos": 65,
+                    //   "queryStartTime": 0,
+                    //   "queryEndTime": 0,
+                    //   "suggestions": [
+                    //   {
+                    //     "sectionName": "Values",
+                    //     "highlighted": null,
+                    //     "items": [
+                    //       {
+                    //         "display": "alert",
+                    //         ...
+                    //       },
+                    //       {
+                    //         "display": "analytics",
+                    //         ...
+                    //         }
+                    //       },
+                    //       {
+                    //         "display": "attack",
+                    //         ...
+                    //       },
+                    //       ...
+                    //     ]
+                    // ],
+                    // ...
+                    // }
+                    // Create the final query with the key appended.
+                    var finalQuery = metricsSelector + " " + key + "=";
+                    var position = finalQuery.length;
+                    var startTime = this.start || 0;
+                    var endTime = this.end || 0;
+                    var url = '/api/v1/metrics/suggest/autocomplete';
+                    var data = {
+                        queryId: 1,
+                        query: finalQuery,
+                        pos: position,
+                        apiVersion: "0.2.0",
+                        queryStartTime: startTime,
+                        queryEndTime: endTime,
+                        requestedSectionsAndCounts: {
+                            values: 1000
+                        }
+                    };
+                    return this._sumoLogicRequest('POST', url, data)
+                        .then(function (result) {
+                        return lodash_1.default.map(result.data.suggestions[0].items, function (suggestion) {
+                            return {
+                                text: suggestion.display,
+                            };
+                        });
+                    });
                 };
                 // Called by Grafana to execute a metrics query.
                 SumoLogicMetricsDatasource.prototype.query = function (options) {
