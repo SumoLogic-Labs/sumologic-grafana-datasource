@@ -103,7 +103,7 @@ export default class SumoLogicMetricsDatasource {
     // The query to constrain the result - a metrics selector.
     let actualQuery = split[2];
 
-    // PLEASE NOTE THAT THIS IS USING AN UNOFFICIAL APU AND IN
+    // PLEASE NOTE THAT THIS IS USING AN UNOFFICIAL API AND IN
     // GENERAL EXPERIMENTAL - BUT IT IS BETTER THAN NOTHING AND
     // IT DOES IN FACT WORK. WE WILL UPDATE TEMPLATE VARIABLE
     // QUERY FUNCTIONALITY ONCE AN OFFICIAL PUBLIC API IS OUT.
