@@ -15,6 +15,8 @@ This beta version of sumologic-metrics-grafana-datasource contains most planned 
 - [Query metrics in Grafana](#query-metrics-in-grafana)
 - [Create a dashboard](#create-a-dashboard)
 - [Templating](#templating)
+  * [Metadata](#metadata)
+  * [Metrics](#metrics)
 - [Plugin development](#plugin-development)
 
 **Note** This plugin is community-supported. For support, add a request in the issues tab.
@@ -85,54 +87,54 @@ You can query your Sumo metrics using the same query syntax you use in the the S
 
 To create a new dashboard, click **New Dashboard**.
 
-![dash-icon](screenshots/new-dash-icon.png)
+![dash-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/new-dash-icon.png)
 
 Click the **Graph** icon.
 
-![graph-icon](screenshots/graph-icon.png)
+![graph-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/graph-icon.png)
 
 Click **Panel Title**.
 
-![panel-title](screenshots/panel-title.png)
+![panel-title](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/panel-title.png)
 
 Click **Edit** in the menu that pops up.
 
-![panel-title](screenshots/edit-button.png)
+![panel-title](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/edit-button.png)
 
 
 A metrics menu opens. Select the name of the data source that you created.
 
-![data-source](screenshots/select-data-source.png)
+![data-source](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/select-data-source.png)
 
 Enter the query that you want to run.
 
-![queryx](screenshots/add-query.png)
+![queryx](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/add-query.png)
 
 
 Write the query. To see the results, hit Tab to de-focus the query text box, or click outside of the query text box.
 
-![query](screenshots/results.png)
+![query](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/results.png)
 
 
 Close the edit box and click **Save**.
 
-![save](screenshots/save.png)
+![save](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/save.png)
 
 
 # Templating
 
 To use templating, click the **Settings** icon and select **Templating**.
 
-![templating](screenshots/settings-templating.png)
+![templating](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/settings-templating.png)
 
 
 Click the **+NEW** button.
 
-![new-button](screenshots/new-button.png)
+![new-button](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/new-button.png)
 
-There are multiple template types. The one that is most customizable with Sumo is the **Query** template.  
+There are multiple template types. The one that is most customizable with Sumo is the **Query** tempate.  
 
-![templatetypes](screenshots/template-types.png)
+![templatetypes](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/template-types.png)
 
 
 Sumo supports two types of queries for generating template autocomplete values.
@@ -158,11 +160,11 @@ where:
 
 * \<Query to run\> is the query that you want to use to narrow down the autocomplete. 
 
-![preview](screenshots/preview-values.png)
+![preview](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/preview-values.png)
 
 If you save the dashboard, you can see the values being autocompleted which were shown in the preview.
 
-![autocomplete](screenshots/cluster.png)
+![autocomplete](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/cluster.png)
 
 ## Metrics 
 
@@ -183,12 +185,12 @@ where:
 
 You can see the preview values like following: 
 
-![preview](screenshots/preview2.png)
+![preview](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/preview2.png)
 
 
 If you save the dashboard, you can see the values being autocompleted which were in the preview.
 
-![autocomplete](screenshots/avail-metrics.png)
+![autocomplete](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/avail-metrics.png)
 
 
 # Plugin development

@@ -154,6 +154,9 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     };
                     return this._sumoLogicRequest('POST', url, data)
                         .then(function (result) {
+                        if (result.data.suggestions.length < 1) {
+                            return [];
+                        }
                         return lodash_1.default.map(result.data.suggestions[0].items, function (suggestion) {
                             return {
                                 text: suggestion.display,

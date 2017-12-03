@@ -168,6 +168,9 @@ export default class SumoLogicMetricsDatasource {
     };
     return this._sumoLogicRequest('POST', url, data)
       .then(result => {
+        if (result.data.suggestions.length < 1) {
+          return [];
+        }
         return _.map(result.data.suggestions[0].items, suggestion => {
           return {
             text: suggestion.display,
