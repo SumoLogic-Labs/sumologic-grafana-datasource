@@ -15,8 +15,7 @@ This beta version of sumologic-metrics-grafana-datasource contains most planned 
 - [Query metrics in Grafana](#query-metrics-in-grafana)
 - [Create a dashboard](#create-a-dashboard)
 - [Templating](#templating)
-  * [Metadata](#metadata)
-  * [Metrics](#metrics)
+  * [Values](#values)
 - [Plugin development](#plugin-development)
 
 **Note** This plugin is community-supported. For support, add a request in the issues tab.
@@ -137,26 +136,27 @@ There are multiple template types. The one that is most customizable with Sumo i
 ![templatetypes](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/template-types.png)
 
 
-Sumo supports two types of queries for generating template autocomplete values.
+Sumo currently supports one special type of query for generating template autocomplete values from timeseries metadata.
 
-* Metadata
-* Metric names
+* Values
 
-## Metadata
+## Values
 
-Use this to get a list of values for a particular dimension. The values for the dimensions will populate the dropdown menu for the template variable. This is a workaround for the fact that the current API doesn't quite let us get the values for a dimensions given already existing values for other metadata dimensions without specifying the metrics dimension as well. For example:
+Every metric time series in Sumo Logic has a set of associated key-value pairs. This is based on the [Metrics 2.0](http://metrics20.org/) concept. Common keys include `_contentType`, `metric`, `_sourceCategory`, `_sourceHost`, `_rawName`, and so on. For dashboard templating, we often want to create a template variable to specify a value for a given key. In order to create a list of all the values for a key, we can use the special query type "values". Consider this example:
 
-`metaTags|_sourceCategory|_contentType=HostMetrics metric=CPU_LoadAvg_1Min`
+`values|_sourceCategory|_contentType=HostMetrics`
 
-This will return all the value for dimension `_sourceCategory` given dimension `_contentType` has value `HostMetrics`. In other words, all the source categories that report host metrics via the Sumo Logic host metrics collector source.
+This will return all the value for dimension `_sourceCategory` given dimension `_contentType` has value `HostMetrics`. In other words, this will return all the source categories that report host metrics via the Sumo Logic host metrics collector source. Note that it is possible to use the value of another template variable in the query. Assuming we have defined a template variable `$sourceCategory" with the above query, we can then create a template variable that will only have the hosts in the given source category by defining another template variable:
+
+`values|_sourceHost|_contentType=HostMetrics _sourceCategory=$sourceCategory`
 
 Format: 
 
-`metatags | <dimensionName> | <Query to run>`
+`values | <dimensionName> | <Query to run>`
 
 where: 
 
-* \<dimensionName\> is the dimension that you want from the query result. For example, if the query narrows it down to five possible dimensions, you can specify which dimension to use to autocomplete the parameter value.
+* \<dimensionName\> is the key that you want from the query result. For example, if the query narrows it down to five possible keys, you can specify which key to use to autocomplete the parameter value.
 
 * \<Query to run\> is the query that you want to use to narrow down the autocomplete. 
 
@@ -165,32 +165,6 @@ where:
 If you save the dashboard, you can see the values being autocompleted which were shown in the preview.
 
 ![autocomplete](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/cluster.png)
-
-## Metrics 
-
-Use this to get a list for all metrics being reported given a set of metadata dimensions being set to specified values. For example:
-
-`metrics|_contentType=HostMetrics`
-
-This will produce a lit of metric names reported as host metrics via the Sumo Logic host metrics collector source.
-
-Format:
-
-`metrics  | <Query to run>`
-
-
-where:
-
-* \<Query to run\> is the query that you want to use to narrow down the autocomplete. 
-
-You can see the preview values like following: 
-
-![preview](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/preview2.png)
-
-
-If you save the dashboard, you can see the values being autocompleted which were in the preview.
-
-![autocomplete](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/avail-metrics.png)
 
 
 # Plugin development
