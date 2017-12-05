@@ -1,0 +1,28 @@
+.min-width-10 {
+  min-width: 10rem;
+}
+
+.min-width-12 {
+  min-width: 12rem;
+}
+
+.min-width-20 {
+  min-width: 20rem;
+}
+
+.gf-form-select-wrapper select.gf-form-input {
+  height: 2.64rem;
+}
+
+.gf-form-select-wrapper--caret-indent.gf-form-select-wrapper::after {
+  right: 0.775rem
+}
+
+.error {
+  margin: 0 2px 0 4px;
+  border: 1px solid transparent;
+  border-left: 2px solid red;
+  border-radius: 0;
+  padding: 10px 20px 4px 20px;
+  word-break: break-word;
+}
