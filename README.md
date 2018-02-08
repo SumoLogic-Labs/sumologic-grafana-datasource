@@ -26,7 +26,7 @@ The plugin has been tested with Grafana v4.5.2, v4.6.2, and v4.6.3.
 
 The master branch attempts to track Grafana development as much as possible.
 
-This is the master branch.
+**This is the master branch.**
 
 For specific version families, please have a look at the accordingly named branches.
 
