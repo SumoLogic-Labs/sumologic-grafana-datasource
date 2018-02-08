@@ -22,7 +22,7 @@ This beta version of sumologic-metrics-grafana-datasource contains most planned 
 
 # Grafana version support
 
-The plugin has been tested with Grafana v4.5.2 and v4.6.2.
+The plugin has been tested with Grafana v4.5.2, v4.6.2, and v4.6.3.
 
 The master branch attempts to track Grafana development as much as possible.
 
