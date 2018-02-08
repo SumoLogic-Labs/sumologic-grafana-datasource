@@ -22,11 +22,13 @@ This beta version of sumologic-metrics-grafana-datasource contains most planned 
 
 # Grafana version support
 
-The plugin has been tested with Grafana v4.4.3 and v4.5.2.
+The plugin has been tested with Grafana v4.5.2, v4.6.2, and v4.6.3.
 
-This branch supports Grafana v4.5.x.
+The master branch attempts to track Grafana development as much as possible.
 
-A version that works with Grafana v4.4.x is available at https://github.com/SumoLogic/sumo-logic-metrics-datasource/tree/v4.4.x.
+**This is the master branch.**
+
+For specific version families, please have a look at the accordingly named branches.
 
 # Install the plugin
 
