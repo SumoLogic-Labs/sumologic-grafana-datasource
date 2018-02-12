@@ -244,7 +244,6 @@ export default class SumoLogicMetricsDatasource {
         if (response.status === 'error') {
           throw response.error;
         }
-        const target = targets[i];
         result = self.transformMetricData(targets, response.data.response);
       }
 
@@ -325,7 +324,6 @@ export default class SumoLogicMetricsDatasource {
         console.log("sumo-logic-metrics-datasource - Datasource.transformMetricData - error: " +
           JSON.stringify(response));
         errors.push(response.message);
-        target.error = response.message;
       }
     }
 
