@@ -213,7 +213,6 @@ System.register(['lodash', 'moment'], function(exports_1) {
                             if (response.status === 'error') {
                                 throw response.error;
                             }
-                            var target = targets[i];
                             result = self.transformMetricData(targets, response.data.response);
                         }
                         // Return the results.
@@ -285,7 +284,6 @@ System.register(['lodash', 'moment'], function(exports_1) {
                             console.log("sumo-logic-metrics-datasource - Datasource.transformMetricData - error: " +
                                 JSON.stringify(response));
                             errors.push(response.message);
-                            target.error = response.message;
                         }
                     }
                     if (errors.length > 0) {
@@ -365,6 +363,23 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     this.quantizationDefined = true;
                 };
                 ;
+                SumoLogicMetricsDatasource.prototype.callCatalogBrowser = function (query) {
+                    var url = '/api/v1/metrics/meta/catalog/query';
+                    var data = {
+                        query: query + '*',
+                        offset: 0,
+                        limit: 10,
+                    };
+                    return this._sumoLogicRequest('POST', url, data).then(function (result) {
+                        var suggestionsList = [];
+                        lodash_1.default.each(result.data.results, function (suggestion) {
+                            suggestionsList.push(suggestion.dimensions);
+                        });
+                        console.log(suggestionsList);
+                        console.log("result", result);
+                        return suggestionsList;
+                    });
+                };
                 return SumoLogicMetricsDatasource;
             })();
             exports_1("default", SumoLogicMetricsDatasource);

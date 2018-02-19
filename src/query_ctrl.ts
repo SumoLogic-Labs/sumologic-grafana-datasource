@@ -10,7 +10,10 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
   defaults = {};
 
   suggestMetrics: any;
+  showValue: any;
+  makeTable: any;
   savedCallback: any;
+  html: string;
 
   /** @ngInject */
   constructor($scope, $injector, private templateSrv) {
@@ -24,6 +27,8 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
     target.expr = target.expr || '';
     target.intervalFactor = 1;
     target.error = null;
+    target.catalogBrowsing = true;
+    target.html  = "Htmllll";
 
     $scope.$on('typeahead-updated', () => {
       $scope.$apply(() => {
@@ -37,11 +42,39 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
         this.savedCallback = callback;
       }
       cb = this.savedCallback;
-      this.datasource.performSuggestQuery(query)
-        .then(cb);
+      //this.datasource.performSuggestQuery(query)
+        //.then(cb);
+      this.datasource.callCatalogBrowser(query)
+          .then(cb);
     };
 
-    // Refresh to execute the query, which will update any errors so
+    this.showValue = (query) => {
+        console.log(query);
+    };
+
+    this.makeTable = (information) => {
+        console.log(information);
+        this.target.html =  "<table style=\"width:100%\">\n" +
+            "  <tr>\n" +
+            "    <th>Firstname</th>\n" +
+            "    <th>Lastname</th> \n" +
+            "    <th>Age</th>\n" +
+            "  </tr>\n" +
+            "  <tr>\n" +
+            "    <td>Jill</td>\n" +
+            "    <td>Smith</td> \n" +
+            "    <td>50</td>\n" +
+            "  </tr>\n" +
+            "  <tr>\n" +
+            "    <td>Eve</td>\n" +
+            "    <td>Jackson</td> \n" +
+            "    <td>94</td>\n" +
+            "  </tr>\n" +
+            "</table>";
+    };
+
+
+      // Refresh to execute the query, which will update any errors so
     // we can display them.
     this.refresh();
   }

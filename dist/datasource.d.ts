@@ -22,4 +22,5 @@ export default class SumoLogicMetricsDatasource {
     _sumoLogicRequest(method: any, url: any, data: any): any;
     calculateInterval(interval: any): number;
     changeQuantization(): void;
+    callCatalogBrowser(query: any): any;
 }

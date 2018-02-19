@@ -5,7 +5,10 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
     static templateUrl: string;
     defaults: {};
     suggestMetrics: any;
+    showValue: any;
+    makeTable: any;
     savedCallback: any;
+    html: string;
     /** @ngInject */
     constructor($scope: any, $injector: any, templateSrv: any);
 }

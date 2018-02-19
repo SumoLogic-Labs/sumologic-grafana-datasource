@@ -244,7 +244,6 @@ export default class SumoLogicMetricsDatasource {
         if (response.status === 'error') {
           throw response.error;
         }
-        const target = targets[i];
         result = self.transformMetricData(targets, response.data.response);
       }
 
@@ -325,7 +324,6 @@ export default class SumoLogicMetricsDatasource {
         console.log("sumo-logic-metrics-datasource - Datasource.transformMetricData - error: " +
           JSON.stringify(response));
         errors.push(response.message);
-        target.error = response.message;
       }
     }
 
@@ -409,4 +407,22 @@ export default class SumoLogicMetricsDatasource {
   changeQuantization() {
     this.quantizationDefined = true;
   };
+
+  callCatalogBrowser(query) {
+      let url = '/api/v1/metrics/meta/catalog/query';
+      let data = {
+          query: query+'*',
+          offset: 0,
+          limit: 10,
+      };
+      return this._sumoLogicRequest('POST', url, data).then(result => {
+          let suggestionsList = [];
+          _.each(result.data.results, suggestion => {
+              suggestionsList.push(suggestion.dimensions);
+          });
+          console.log(suggestionsList);
+          console.log("result", result);
+          return suggestionsList;
+      });
+  }
 }

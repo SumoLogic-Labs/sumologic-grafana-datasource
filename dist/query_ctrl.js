@@ -31,6 +31,8 @@ System.register(['lodash', 'app/plugins/sdk', './css/query_editor.css!'], functi
                     target.expr = target.expr || '';
                     target.intervalFactor = 1;
                     target.error = null;
+                    target.catalogBrowsing = true;
+                    target.html = "Htmllll";
                     $scope.$on('typeahead-updated', function () {
                         $scope.$apply(function () {
                         });
@@ -42,8 +44,33 @@ System.register(['lodash', 'app/plugins/sdk', './css/query_editor.css!'], functi
                             _this.savedCallback = callback;
                         }
                         cb = _this.savedCallback;
-                        _this.datasource.performSuggestQuery(query)
+                        //this.datasource.performSuggestQuery(query)
+                        //.then(cb);
+                        _this.datasource.callCatalogBrowser(query)
                             .then(cb);
+                    };
+                    this.showValue = function (query) {
+                        console.log(query);
+                    };
+                    this.makeTable = function (information) {
+                        console.log(information);
+                        _this.target.html = "<table style=\"width:100%\">\n" +
+                            "  <tr>\n" +
+                            "    <th>Firstname</th>\n" +
+                            "    <th>Lastname</th> \n" +
+                            "    <th>Age</th>\n" +
+                            "  </tr>\n" +
+                            "  <tr>\n" +
+                            "    <td>Jill</td>\n" +
+                            "    <td>Smith</td> \n" +
+                            "    <td>50</td>\n" +
+                            "  </tr>\n" +
+                            "  <tr>\n" +
+                            "    <td>Eve</td>\n" +
+                            "    <td>Jackson</td> \n" +
+                            "    <td>94</td>\n" +
+                            "  </tr>\n" +
+                            "</table>";
                     };
                     // Refresh to execute the query, which will update any errors so
                     // we can display them.

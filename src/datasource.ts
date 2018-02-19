@@ -407,4 +407,22 @@ export default class SumoLogicMetricsDatasource {
   changeQuantization() {
     this.quantizationDefined = true;
   };
+
+  callCatalogBrowser(query) {
+      let url = '/api/v1/metrics/meta/catalog/query';
+      let data = {
+          query: query+'*',
+          offset: 0,
+          limit: 10,
+      };
+      return this._sumoLogicRequest('POST', url, data).then(result => {
+          let suggestionsList = [];
+          _.each(result.data.results, suggestion => {
+              suggestionsList.push(suggestion.dimensions);
+          });
+          console.log(suggestionsList);
+          console.log("result", result);
+          return suggestionsList;
+      });
+  }
 }
