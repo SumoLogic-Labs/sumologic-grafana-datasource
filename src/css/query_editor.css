@@ -80,13 +80,13 @@ input:checked + .slider:before {
 .haha {
     background: black;
     opacity: .5;
-    display: block;
+    display: none;
     height: 200px;
     position:absolute;
     width:100%}
 
 
-.gf-form-input:focus + .haha { display: none; }
+.gf-form-input:focus + .haha { display: block; }
 
 th, td {
   padding: 8px;

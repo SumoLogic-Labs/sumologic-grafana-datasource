@@ -372,12 +372,20 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     };
                     return this._sumoLogicRequest('POST', url, data).then(function (result) {
                         var suggestionsList = [];
+                        var cols = new Set();
                         lodash_1.default.each(result.data.results, function (suggestion) {
-                            suggestionsList.push(suggestion.dimensions);
+                            var dimObj = {};
+                            suggestion.dimensions.forEach(function (item) {
+                                var key = item.key;
+                                cols.add(key);
+                                dimObj[key] = item.value;
+                            });
+                            suggestionsList.push(dimObj);
                         });
-                        console.log(suggestionsList);
-                        console.log("result", result);
-                        return suggestionsList;
+                        return {
+                            cols: cols,
+                            rows: suggestionsList,
+                        };
                     });
                 };
                 return SumoLogicMetricsDatasource;

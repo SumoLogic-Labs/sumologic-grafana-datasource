@@ -9,7 +9,7 @@
             </label>
             <label class="gf-form--grow">
                 <input type="text" class="gf-form-input" ng-model="ctrl.target.expr"
-                       ng-change="ctrl.suggestMetrics(ctrl.target.expr, ctrl.showValue, ctrl.target.html)"
+                       ng-change="ctrl.suggestMetrics(ctrl.target.expr, ctrl.makeTable, ctrl.target.html)"
                        ng-blur="ctrl.panelCtrl.refresh()"/>
                 <div class="haha" ng-bind-html="ctrl.target.html"></div>
             </label>

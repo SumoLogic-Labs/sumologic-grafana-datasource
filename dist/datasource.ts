@@ -417,12 +417,20 @@ export default class SumoLogicMetricsDatasource {
       };
       return this._sumoLogicRequest('POST', url, data).then(result => {
           let suggestionsList = [];
+          let cols = new Set();
           _.each(result.data.results, suggestion => {
-              suggestionsList.push(suggestion.dimensions);
+              const dimObj = {};
+              suggestion.dimensions.forEach((item) => {
+                const key = item.key;
+                cols.add(key);
+                dimObj[key] = item.value;
+              })
+              suggestionsList.push(dimObj);
           });
-          console.log(suggestionsList);
-          console.log("result", result);
-          return suggestionsList;
+          return {
+            cols,
+            rows: suggestionsList,
+          };
       });
   }
 }

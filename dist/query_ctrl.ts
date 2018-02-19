@@ -54,23 +54,18 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
 
     this.makeTable = (information) => {
         console.log(information);
-        this.target.html =  "<table style=\"width:100%\">\n" +
-            "  <tr>\n" +
-            "    <th>Firstname</th>\n" +
-            "    <th>Lastname</th> \n" +
-            "    <th>Age</th>\n" +
-            "  </tr>\n" +
-            "  <tr>\n" +
-            "    <td>Jill</td>\n" +
-            "    <td>Smith</td> \n" +
-            "    <td>50</td>\n" +
-            "  </tr>\n" +
-            "  <tr>\n" +
-            "    <td>Eve</td>\n" +
-            "    <td>Jackson</td> \n" +
-            "    <td>94</td>\n" +
-            "  </tr>\n" +
-            "</table>";
+        this.target.html =  "<table style=\"width:100%\"><tr>";
+        information.cols.forEach((column, col, set) => {
+          this.target.html += "<th>"+column+"</th>";
+        });
+        this.target.html +=  "</tr><tr>";
+        information.rows.forEach( (row) => {
+            information.cols.forEach( (dimension) => {
+                this.target.html += "<td>"+row[dimension]+"</td>";
+            });
+            this.target.html +=  "</tr><tr>";
+        });
+        this.target.html += "</tr>\n </table>";
     };
 
 
