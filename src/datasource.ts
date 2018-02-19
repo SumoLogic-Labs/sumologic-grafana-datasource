@@ -420,11 +420,18 @@ export default class SumoLogicMetricsDatasource {
           let cols = new Set();
           _.each(result.data.results, suggestion => {
               const dimObj = {};
+              suggestion.metaTags.forEach((item) => {
+                  const key = item.key;
+                  if (key !== '_collectorId' && key !== "_sourceId" && key !== "_rawName") {
+                      cols.add(key);
+                      dimObj[key] = item.value;
+                  }
+              });
               suggestion.dimensions.forEach((item) => {
                 const key = item.key;
                 cols.add(key);
                 dimObj[key] = item.value;
-              })
+              });
               suggestionsList.push(dimObj);
           });
           return {

@@ -80,7 +80,7 @@ input:checked + .slider:before {
 .haha {
     background: black;
     opacity: .5;
-    display: none;
+    display: block;
     height: 200px;
     position:absolute;
     width:100%}
@@ -91,6 +91,7 @@ input:checked + .slider:before {
 th, td {
   padding: 8px;
 }
+
 
 th {
   color: yellow;

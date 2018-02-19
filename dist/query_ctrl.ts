@@ -53,7 +53,6 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
     };
 
     this.makeTable = (information) => {
-        console.log(information);
         this.target.html =  "<table style=\"width:100%\"><tr>";
         information.cols.forEach((column, col, set) => {
           this.target.html += "<th>"+column+"</th>";
@@ -61,7 +60,8 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
         this.target.html +=  "</tr><tr>";
         information.rows.forEach( (row) => {
             information.cols.forEach( (dimension) => {
-                this.target.html += "<td>"+row[dimension]+"</td>";
+                const cell = row[dimension] || '';
+                this.target.html += "<td onclick=\"changeText(this)\">"+cell+"</td>";
             });
             this.target.html +=  "</tr><tr>";
         });

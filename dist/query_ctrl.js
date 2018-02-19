@@ -53,7 +53,6 @@ System.register(['lodash', 'app/plugins/sdk', './css/query_editor.css!'], functi
                         console.log(query);
                     };
                     this.makeTable = function (information) {
-                        console.log(information);
                         _this.target.html = "<table style=\"width:100%\"><tr>";
                         information.cols.forEach(function (column, col, set) {
                             _this.target.html += "<th>" + column + "</th>";
@@ -61,7 +60,8 @@ System.register(['lodash', 'app/plugins/sdk', './css/query_editor.css!'], functi
                         _this.target.html += "</tr><tr>";
                         information.rows.forEach(function (row) {
                             information.cols.forEach(function (dimension) {
-                                _this.target.html += "<td>" + row[dimension] + "</td>";
+                                var cell = row[dimension] || '';
+                                _this.target.html += "<td onclick=\"changeText(this)\">" + cell + "</td>";
                             });
                             _this.target.html += "</tr><tr>";
                         });

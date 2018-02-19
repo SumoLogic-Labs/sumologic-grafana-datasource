@@ -375,6 +375,13 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         var cols = new Set();
                         lodash_1.default.each(result.data.results, function (suggestion) {
                             var dimObj = {};
+                            suggestion.metaTags.forEach(function (item) {
+                                var key = item.key;
+                                if (key !== '_collectorId' && key !== "_sourceId" && key !== "_rawName") {
+                                    cols.add(key);
+                                    dimObj[key] = item.value;
+                                }
+                            });
                             suggestion.dimensions.forEach(function (item) {
                                 var key = item.key;
                                 cols.add(key);
