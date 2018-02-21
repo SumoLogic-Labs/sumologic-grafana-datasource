@@ -10,6 +10,7 @@ export default class SumoLogicMetricsDatasource {
     end: number;
     error: string;
     quantizationDefined: boolean;
+    latestQuery: string;
     /** @ngInject */
     constructor(instanceSettings: any, backendSrv: any, templateSrv: any, $q: any);
     testDatasource(): any;

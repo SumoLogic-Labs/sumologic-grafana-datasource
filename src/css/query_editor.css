@@ -80,7 +80,7 @@ input:checked + .slider:before {
 .haha {
     background: #141414;
     opacity: .75;
-    display: none;
+    display: block;
     max-height: 300px;
     position:absolute;
     max-width:100%;
@@ -96,8 +96,6 @@ th, td {
   padding: 5px;
 }
 
-
-
 th {
   color: yellow;
 
@@ -105,8 +103,11 @@ th {
 
 .matched {
   color: lightgreen;
+  font-weight: bold;
 }
 
 .specified {
+  background-color: #444;
   color: white;
 }
+

@@ -364,6 +364,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                 };
                 ;
                 SumoLogicMetricsDatasource.prototype.callCatalogBrowser = function (query) {
+                    var _this = this;
                     var url = '/api/v1/metrics/meta/catalog/query';
                     var data = {
                         query: query + '*',
@@ -371,6 +372,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         limit: 10,
                     };
                     var queryMatch = '';
+                    this.latestQuery = query;
                     var queryPart = query.split(' ');
                     if (queryPart[queryPart.length - 1].length !== 0 && queryPart[queryPart.length - 1].indexOf('=') < 0) {
                         queryMatch = queryPart[queryPart.length - 1];
@@ -385,7 +387,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         colOrder[col] = 0;
                     });
                     return this._sumoLogicRequest('POST', url, data).then(function (result) {
-                        if (result.data.results.length === 0) {
+                        if (result.data.results.length === 0 || _this.latestQuery != query) {
                             return {
                                 colNames: [],
                                 colRows: [],
@@ -396,29 +398,31 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         lodash_1.default.each(result.data.results, function (metric) {
                             metric.metaTags.forEach(function (item) {
                                 var key = String(item.key).toLowerCase();
+                                var queryInside = queryMatch.length > 0 && item.value.toLowerCase().slice(0, queryMatch.length) === queryMatch;
                                 if (lodash_1.default.has(colVals, key)) {
-                                    if (colOrder[key] === 2 && queryMatch.length > 0 && item.value.toLowerCase().slice(0, queryMatch.length) === queryMatch) {
+                                    if (colOrder[key] === 2 && queryInside) {
                                         colOrder[key] = 1;
                                     }
                                 }
                                 else {
                                     colVals[key] = new Array(10);
-                                    colOrder[key] = queryMatch.length > 0 && item.value.toLowerCase().slice(0, queryMatch.length) === queryMatch ? 1 : 2;
+                                    colOrder[key] = queryInside ? 1 : 2;
                                 }
-                                colVals[key][rowNum] = item.value;
+                                colVals[key][rowNum] = queryInside ? "<span class='matched'>" + queryMatch + "</span>" + item.value.slice(queryMatch.length) : item.value;
                             });
                             metric.dimensions.forEach(function (item) {
                                 var key = String(item.key).toLowerCase();
+                                var queryInside = queryMatch.length > 0 && item.value.toLowerCase().slice(0, queryMatch.length) === queryMatch;
                                 if (lodash_1.default.has(colVals, key)) {
-                                    if (colOrder[key] === 2 && queryMatch.length > 0 && item.value.toLowerCase().slice(0, queryMatch.length) === queryMatch) {
+                                    if (colOrder[key] === 2 && queryInside) {
                                         colOrder[key] = 1;
                                     }
                                 }
                                 else {
                                     colVals[key] = new Array(10);
-                                    colOrder[key] = queryMatch.length > 0 && item.value.toLowerCase().slice(0, queryMatch.length) === queryMatch ? 1 : 2;
+                                    colOrder[key] = queryInside ? 1 : 2;
                                 }
-                                colVals[key][rowNum] = item.value;
+                                colVals[key][rowNum] = queryInside ? "<span class='matched'>" + queryMatch + "</span>" + item.value.slice(queryMatch.length) : item.value;
                             });
                             rowNum += 1;
                         });
@@ -443,55 +447,6 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         });
                         return { colNames: colNames, colRows: colRows, specifiedCols: zero.length, matchedCols: zero.length + one.length };
                     });
-                    /*
-                    let cols = new Set(this.parseQuery(query));
-                    const specifiedCols = cols.size;
-                    return this._sumoLogicRequest('POST', url, data).then(result => {
-                        if (result.data.results.length===0){
-                          return {cols: new Set(),
-                              rows: [],
-                              matchedCols: 0,
-                              specifiedCols: 0};
-                        }
-                        let suggestionsList = [];
-                        const additionalCols = new Set();
-                        _.each(result.data.results, suggestion => {
-                            const dimObj = {};
-                            suggestion.metaTags.forEach((item) => {
-                                const key = String(item.key).toLowerCase();
-                                if (!(key === '_collectorid' || key === "_sourceid" || key === "_rawname")) {
-                                  if (item.value.toLowerCase().slice(queryMatch.length)===queryMatch){
-                                      cols.add(key);
-                                  } else{
-                                      additionalCols.add(key);
-                                  }
-                                    dimObj[key] = item.value;
-                                }
-                            });
-                            suggestion.dimensions.forEach((item) => {
-                                const key = String(item.key).toLowerCase();
-                                if (!(key === '_collectorid' || key === "_sourceid" || key === "_rawname")) {
-                                    if (item.value.toLowerCase().slice(queryMatch.length)===queryMatch){
-                                        cols.add(key);
-                                    } else{
-                                        additionalCols.add(key);
-                                    }
-                                    dimObj[key] = item.value;
-                                }
-                            });
-                            suggestionsList.push(dimObj);
-                        });
-                        const matchedCols = cols.size;
-                       additionalCols.forEach( (col) => {
-                         cols.add(col);
-                       });
-                        return {
-                          cols,
-                          rows: suggestionsList,
-                            matchedCols,
-                            specifiedCols,
-                        };
-                    });*/
                 };
                 SumoLogicMetricsDatasource.prototype.parseQuery = function (query) {
                     var queryParts = query.toLowerCase().split(' ');

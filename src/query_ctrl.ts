@@ -61,8 +61,8 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
         information.colNames.forEach((column) => {
             if (counter<=information.specifiedCols){
                 this.target.html += "<th class='specified'>"+column+"</th>";
-            } else if (counter<=information.matchedCols){
-                this.target.html += "<th class='matched'>"+column+"</th>";
+            //} else if (counter<=information.matchedCols){
+                //this.target.html += "<th class='matched'>"+column+"</th>";
             } else {
             this.target.html += "<th>" + column + "</th>";
             }
@@ -74,7 +74,11 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
             this.target.html += "<tr>";
             for (colNum = 0; colNum < information.colRows.length; colNum++) {
                 const cell = information.colRows[colNum][rowNum] || '';
-                this.target.html += "<td>" + cell + "</td>";
+                if (colNum<information.specifiedCols) {
+                    this.target.html += "<td class='specified'>" + cell + "</td>";
+                }else {
+                    this.target.html += "<td>" + cell + "</td>";
+                }
             }
             this.target.html +=  "</tr>";
         }

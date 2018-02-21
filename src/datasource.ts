@@ -29,6 +29,7 @@ export default class SumoLogicMetricsDatasource {
   end: number;
   error: string;
   quantizationDefined: boolean;
+  latestQuery: string;
 
   /** @ngInject */
   constructor(instanceSettings, private backendSrv, private templateSrv, private $q) {
@@ -416,6 +417,7 @@ export default class SumoLogicMetricsDatasource {
           limit: 10,
       };
       let queryMatch = '';
+      this.latestQuery = query;
       const queryPart = query.split(' ');
       if (queryPart[queryPart.length-1].length !==0 && queryPart[queryPart.length-1].indexOf('=') < 0) {
         queryMatch = queryPart[queryPart.length-1];
@@ -431,7 +433,7 @@ export default class SumoLogicMetricsDatasource {
         colOrder[col] = 0;
       });
       return this._sumoLogicRequest('POST', url, data).then(result => {
-          if (result.data.results.length === 0) {
+          if (result.data.results.length === 0 || this.latestQuery != query) {
               return {
                   colNames: [],
                   colRows: [],
@@ -444,29 +446,31 @@ export default class SumoLogicMetricsDatasource {
 
               metric.metaTags.forEach((item) => {
                   const key = String(item.key).toLowerCase();
+                  const queryInside = queryMatch.length>0 && item.value.toLowerCase().slice(0,queryMatch.length)===queryMatch;
                   if (_.has(colVals, key)) {
-                      if (colOrder[key]===2 && queryMatch.length>0 && item.value.toLowerCase().slice(0,queryMatch.length)===queryMatch) {
+                      if (colOrder[key]===2 &&  queryInside) {
                           colOrder[key] = 1;
                       }
                   } else {
                           colVals[key] = new Array(10);
-                          colOrder[key] = queryMatch.length>0 && item.value.toLowerCase().slice(0,queryMatch.length)===queryMatch? 1 : 2;
+                          colOrder[key] = queryInside? 1 : 2;
                   }
-                  colVals[key][rowNum] = item.value;
+                  colVals[key][rowNum] = queryInside? "<span class='matched'>"+queryMatch+"</span>"+item.value.slice(queryMatch.length) : item.value;
               });
 
               metric.dimensions.forEach((item) => {
                   const key = String(item.key).toLowerCase();
+                  const queryInside = queryMatch.length>0 && item.value.toLowerCase().slice(0,queryMatch.length)===queryMatch;
                   if (_.has(colVals, key)) {
-                    if (colOrder[key]===2 && queryMatch.length>0 && item.value.toLowerCase().slice(0,queryMatch.length)===queryMatch){
+                    if (colOrder[key]===2 && queryInside){
                       colOrder[key] = 1;
                     }
                   } else {
                       colVals[key] = new Array(10);
-                      colOrder[key] = queryMatch.length>0 && item.value.toLowerCase().slice(0,queryMatch.length)===queryMatch? 1 : 2;
+                      colOrder[key] = queryInside? 1 : 2;
                   }
 
-                  colVals[key][rowNum] = item.value;
+                  colVals[key][rowNum] = queryInside? "<span class='matched'>"+queryMatch+"</span>"+item.value.slice(queryMatch.length) : item.value;
               });
 
               rowNum += 1;
