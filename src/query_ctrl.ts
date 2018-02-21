@@ -28,7 +28,7 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
     target.intervalFactor = 1;
     target.error = null;
     target.catalogBrowsing = true;
-    target.html  = "Htmllll";
+    target.html  = "";
 
     $scope.$on('typeahead-updated', () => {
       $scope.$apply(() => {
@@ -53,15 +53,23 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
     };
 
     this.makeTable = (information) => {
+        let counter = 1;
         this.target.html =  "<table style=\"width:100%\"><tr>";
         information.cols.forEach((column, col, set) => {
-          this.target.html += "<th>"+column+"</th>";
+            if (counter<=information.specifiedCols){
+                this.target.html += "<th class='specified'>"+column+"</th>";
+            } else if (counter<=information.matchedCols){
+                this.target.html += "<th class='matched'>"+column+"</th>";
+            } else {
+                this.target.html += "<th>"+column+"</th>";
+            }
+            counter+=1;
         });
         this.target.html +=  "</tr><tr>";
         information.rows.forEach( (row) => {
             information.cols.forEach( (dimension) => {
                 const cell = row[dimension] || '';
-                this.target.html += "<td onclick=\"changeText(this)\">"+cell+"</td>";
+                this.target.html += "<td>"+cell+"</td>";
             });
             this.target.html +=  "</tr><tr>";
         });

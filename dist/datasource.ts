@@ -415,29 +415,71 @@ export default class SumoLogicMetricsDatasource {
           offset: 0,
           limit: 10,
       };
+      let queryMatch;
+      const queryPart = query.split(' ');
+      if (queryPart[queryPart.length-1].length !==0 && queryPart[queryPart.length-1].indexOf('=') < 0) {
+        queryMatch = queryPart[queryPart.length-1];
+      }
+      let cols = new Set(this.parseQuery(query));
+      const specifiedCols = cols.size;
       return this._sumoLogicRequest('POST', url, data).then(result => {
+          if (result.data.results.length===0){
+            return {cols: new Set(),
+                rows: [],
+                matchedCols: 0,
+                specifiedCols: 0};
+          }
           let suggestionsList = [];
-          let cols = new Set();
+          const additionalCols = new Set();
           _.each(result.data.results, suggestion => {
               const dimObj = {};
               suggestion.metaTags.forEach((item) => {
-                  const key = item.key;
-                  if (key !== '_collectorId' && key !== "_sourceId" && key !== "_rawName") {
-                      cols.add(key);
+                  const key = String(item.key).toLowerCase();
+                  if (!(key === '_collectorid' || key === "_sourceid" || key === "_rawname")) {
+                    if (item.value.toLowerCase().indexOf(queryMatch)===0){
+                        cols.add(key);
+                    } else{
+                        additionalCols.add(key);
+                    }
                       dimObj[key] = item.value;
                   }
               });
               suggestion.dimensions.forEach((item) => {
-                const key = item.key;
-                cols.add(key);
-                dimObj[key] = item.value;
+                  const key = String(item.key).toLowerCase();
+                  if (!(key === '_collectorid' || key === "_sourceid" || key === "_rawname")) {
+                      if (item.value.toLowerCase().indexOf(queryMatch)===0){
+                          cols.add(key);
+                      } else{
+                          additionalCols.add(key);
+                      }
+                      dimObj[key] = item.value;
+                  }
               });
               suggestionsList.push(dimObj);
           });
+          const matchedCols = cols.size;
+         additionalCols.forEach( (col) => {
+           cols.add(col);
+         });
           return {
             cols,
             rows: suggestionsList,
+              matchedCols,
+              specifiedCols,
           };
       });
   }
+
+  parseQuery(query) {
+    const queryParts = query.split(' ');
+    const filters = [];
+    queryParts.forEach((part) => {
+      const params = part.split('=');
+      if (params.length>1) {
+        filters.push(params[0]);
+      }
+    });
+    return filters;
+  }
+
 }

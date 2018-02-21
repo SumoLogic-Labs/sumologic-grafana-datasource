@@ -370,30 +370,72 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         offset: 0,
                         limit: 10,
                     };
+                    var queryMatch;
+                    var queryPart = query.split(' ');
+                    if (queryPart[queryPart.length - 1].length !== 0 && queryPart[queryPart.length - 1].indexOf('=') < 0) {
+                        queryMatch = queryPart[queryPart.length - 1];
+                    }
+                    var cols = new Set(this.parseQuery(query));
+                    var specifiedCols = cols.size;
                     return this._sumoLogicRequest('POST', url, data).then(function (result) {
+                        if (result.data.results.length === 0) {
+                            return { cols: new Set(),
+                                rows: [],
+                                matchedCols: 0,
+                                specifiedCols: 0 };
+                        }
                         var suggestionsList = [];
-                        var cols = new Set();
+                        var additionalCols = new Set();
                         lodash_1.default.each(result.data.results, function (suggestion) {
                             var dimObj = {};
                             suggestion.metaTags.forEach(function (item) {
-                                var key = item.key;
-                                if (key !== '_collectorId' && key !== "_sourceId" && key !== "_rawName") {
-                                    cols.add(key);
+                                var key = String(item.key).toLowerCase();
+                                if (!(key === '_collectorid' || key === "_sourceid" || key === "_rawname")) {
+                                    if (item.value.toLowerCase().indexOf(queryMatch) === 0) {
+                                        cols.add(key);
+                                    }
+                                    else {
+                                        additionalCols.add(key);
+                                    }
                                     dimObj[key] = item.value;
                                 }
                             });
                             suggestion.dimensions.forEach(function (item) {
-                                var key = item.key;
-                                cols.add(key);
-                                dimObj[key] = item.value;
+                                var key = String(item.key).toLowerCase();
+                                if (!(key === '_collectorid' || key === "_sourceid" || key === "_rawname")) {
+                                    if (item.value.toLowerCase().indexOf(queryMatch) === 0) {
+                                        cols.add(key);
+                                    }
+                                    else {
+                                        additionalCols.add(key);
+                                    }
+                                    dimObj[key] = item.value;
+                                }
                             });
                             suggestionsList.push(dimObj);
+                        });
+                        var matchedCols = cols.size;
+                        additionalCols.forEach(function (col) {
+                            cols.add(col);
                         });
                         return {
                             cols: cols,
                             rows: suggestionsList,
+                            matchedCols: matchedCols,
+                            specifiedCols: specifiedCols,
                         };
                     });
+                };
+                SumoLogicMetricsDatasource.prototype.parseQuery = function (query) {
+                    var queryParts = query.split(' ');
+                    var filters = [];
+                    queryParts.forEach(function (part) {
+                        var params = part.split('=');
+                        if (params.length > 1) {
+                            filters.push(params[0]);
+                        }
+                    });
+                    return filters;
                 };
                 return SumoLogicMetricsDatasource;
             })();

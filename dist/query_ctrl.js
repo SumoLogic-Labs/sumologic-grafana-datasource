@@ -32,7 +32,7 @@ System.register(['lodash', 'app/plugins/sdk', './css/query_editor.css!'], functi
                     target.intervalFactor = 1;
                     target.error = null;
                     target.catalogBrowsing = true;
-                    target.html = "Htmllll";
+                    target.html = "";
                     $scope.$on('typeahead-updated', function () {
                         $scope.$apply(function () {
                         });
@@ -53,15 +53,25 @@ System.register(['lodash', 'app/plugins/sdk', './css/query_editor.css!'], functi
                         console.log(query);
                     };
                     this.makeTable = function (information) {
+                        var counter = 1;
                         _this.target.html = "<table style=\"width:100%\"><tr>";
                         information.cols.forEach(function (column, col, set) {
-                            _this.target.html += "<th>" + column + "</th>";
+                            if (counter <= information.specifiedCols) {
+                                _this.target.html += "<th class='specified'>" + column + "</th>";
+                            }
+                            else if (counter <= information.matchedCols) {
+                                _this.target.html += "<th class='matched'>" + column + "</th>";
+                            }
+                            else {
+                                _this.target.html += "<th>" + column + "</th>";
+                            }
+                            counter += 1;
                         });
                         _this.target.html += "</tr><tr>";
                         information.rows.forEach(function (row) {
                             information.cols.forEach(function (dimension) {
                                 var cell = row[dimension] || '';
-                                _this.target.html += "<td onclick=\"changeText(this)\">" + cell + "</td>";
+                                _this.target.html += "<td>" + cell + "</td>";
                             });
                             _this.target.html += "</tr><tr>";
                         });

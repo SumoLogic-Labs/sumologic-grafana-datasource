@@ -80,19 +80,33 @@ input:checked + .slider:before {
 .haha {
     background: black;
     opacity: .5;
-    display: block;
-    height: 200px;
+    display: none;
+    max-height: 300px;
     position:absolute;
-    width:100%}
+    max-width:100%;
+    overflow-y:auto;
+    overflow-x:auto;
+}
 
+.haha:focus { display:block; }
 
 .gf-form-input:focus + .haha { display: block; }
 
 th, td {
-  padding: 8px;
+  padding: 5px;
 }
+
 
 
 th {
   color: yellow;
+
+}
+
+.matched {
+  color: lightgreen;
+}
+
+.specified {
+  color: white;
 }
