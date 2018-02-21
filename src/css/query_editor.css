@@ -78,8 +78,8 @@ input:checked + .slider:before {
 }
 
 .haha {
-    background: black;
-    opacity: .5;
+    background: #141414;
+    opacity: .75;
     display: none;
     max-height: 300px;
     position:absolute;

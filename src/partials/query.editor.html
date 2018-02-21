@@ -16,7 +16,10 @@
         </div>
     </div>
     <script>
-
+        history.pushState(null, null, location.href);
+        window.onpopstate = function(event) {
+            history.go(1);
+        };
     </script>
     <!--<div class="gf-form-inline" ng-show="ctrl.target.error">-->
         <!--<div class="gf-form gf-form&#45;&#45;grow">-->

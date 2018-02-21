@@ -391,7 +391,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                             suggestion.metaTags.forEach(function (item) {
                                 var key = String(item.key).toLowerCase();
                                 if (!(key === '_collectorid' || key === "_sourceid" || key === "_rawname")) {
-                                    if (item.value.toLowerCase().indexOf(queryMatch) === 0) {
+                                    if (item.value.toLowerCase().slice(queryMatch.length) === queryMatch) {
                                         cols.add(key);
                                     }
                                     else {
@@ -403,7 +403,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                             suggestion.dimensions.forEach(function (item) {
                                 var key = String(item.key).toLowerCase();
                                 if (!(key === '_collectorid' || key === "_sourceid" || key === "_rawname")) {
-                                    if (item.value.toLowerCase().indexOf(queryMatch) === 0) {
+                                    if (item.value.toLowerCase().slice(queryMatch.length) === queryMatch) {
                                         cols.add(key);
                                     }
                                     else {
@@ -427,7 +427,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     });
                 };
                 SumoLogicMetricsDatasource.prototype.parseQuery = function (query) {
-                    var queryParts = query.split(' ');
+                    var queryParts = query.toLowerCase().split(' ');
                     var filters = [];
                     queryParts.forEach(function (part) {
                         var params = part.split('=');

@@ -436,7 +436,7 @@ export default class SumoLogicMetricsDatasource {
               suggestion.metaTags.forEach((item) => {
                   const key = String(item.key).toLowerCase();
                   if (!(key === '_collectorid' || key === "_sourceid" || key === "_rawname")) {
-                    if (item.value.toLowerCase().indexOf(queryMatch)===0){
+                    if (item.value.toLowerCase().slice(queryMatch.length)===queryMatch){
                         cols.add(key);
                     } else{
                         additionalCols.add(key);
@@ -447,7 +447,7 @@ export default class SumoLogicMetricsDatasource {
               suggestion.dimensions.forEach((item) => {
                   const key = String(item.key).toLowerCase();
                   if (!(key === '_collectorid' || key === "_sourceid" || key === "_rawname")) {
-                      if (item.value.toLowerCase().indexOf(queryMatch)===0){
+                      if (item.value.toLowerCase().slice(queryMatch.length)===queryMatch){
                           cols.add(key);
                       } else{
                           additionalCols.add(key);
@@ -471,7 +471,7 @@ export default class SumoLogicMetricsDatasource {
   }
 
   parseQuery(query) {
-    const queryParts = query.split(' ');
+    const queryParts = query.toLowerCase().split(' ');
     const filters = [];
     queryParts.forEach((part) => {
       const params = part.split('=');
