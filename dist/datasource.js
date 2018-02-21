@@ -370,43 +370,110 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         offset: 0,
                         limit: 10,
                     };
-                    var queryMatch;
+                    var queryMatch = '';
                     var queryPart = query.split(' ');
                     if (queryPart[queryPart.length - 1].length !== 0 && queryPart[queryPart.length - 1].indexOf('=') < 0) {
                         queryMatch = queryPart[queryPart.length - 1];
                     }
-                    var cols = new Set(this.parseQuery(query));
-                    var specifiedCols = cols.size;
+                    var cols = this.parseQuery(query);
+                    var colVals = {};
+                    var colOrder = {};
+                    var rowNum = 0;
+                    // initialize specified columns
+                    cols.forEach(function (col) {
+                        colVals[col] = new Array(10);
+                        colOrder[col] = 0;
+                    });
                     return this._sumoLogicRequest('POST', url, data).then(function (result) {
                         if (result.data.results.length === 0) {
-                            return { cols: new Set(),
-                                rows: [],
+                            return {
+                                colNames: [],
+                                colRows: [],
+                                specifiedCols: 0,
                                 matchedCols: 0,
-                                specifiedCols: 0 };
+                            };
                         }
-                        var suggestionsList = [];
-                        var additionalCols = new Set();
-                        lodash_1.default.each(result.data.results, function (suggestion) {
-                            var dimObj = {};
-                            suggestion.metaTags.forEach(function (item) {
+                        lodash_1.default.each(result.data.results, function (metric) {
+                            metric.metaTags.forEach(function (item) {
                                 var key = String(item.key).toLowerCase();
+                                if (lodash_1.default.has(colVals, key)) {
+                                    if (colOrder[key] === 2 && queryMatch.length > 0 && item.value.toLowerCase().slice(0, queryMatch.length) === queryMatch) {
+                                        colOrder[key] = 1;
+                                    }
+                                }
+                                else {
+                                    colVals[key] = new Array(10);
+                                    colOrder[key] = queryMatch.length > 0 && item.value.toLowerCase().slice(0, queryMatch.length) === queryMatch ? 1 : 2;
+                                }
+                                colVals[key][rowNum] = item.value;
+                            });
+                            metric.dimensions.forEach(function (item) {
+                                var key = String(item.key).toLowerCase();
+                                if (lodash_1.default.has(colVals, key)) {
+                                    if (colOrder[key] === 2 && queryMatch.length > 0 && item.value.toLowerCase().slice(0, queryMatch.length) === queryMatch) {
+                                        colOrder[key] = 1;
+                                    }
+                                }
+                                else {
+                                    colVals[key] = new Array(10);
+                                    colOrder[key] = queryMatch.length > 0 && item.value.toLowerCase().slice(0, queryMatch.length) === queryMatch ? 1 : 2;
+                                }
+                                colVals[key][rowNum] = item.value;
+                            });
+                            rowNum += 1;
+                        });
+                        var zero = [];
+                        var one = [];
+                        var two = [];
+                        Object.getOwnPropertyNames(colOrder).forEach(function (colName) {
+                            if (colOrder[colName] === 0) {
+                                zero.push(colName);
+                            }
+                            else if (colOrder[colName] === 1) {
+                                one.push(colName);
+                            }
+                            else {
+                                two.push(colName);
+                            }
+                        });
+                        var colNames = zero.concat(one).concat(two);
+                        var colRows = [];
+                        colNames.forEach(function (col) {
+                            colRows.push(colVals[col]);
+                        });
+                        return { colNames: colNames, colRows: colRows, specifiedCols: zero.length, matchedCols: zero.length + one.length };
+                    });
+                    /*
+                    let cols = new Set(this.parseQuery(query));
+                    const specifiedCols = cols.size;
+                    return this._sumoLogicRequest('POST', url, data).then(result => {
+                        if (result.data.results.length===0){
+                          return {cols: new Set(),
+                              rows: [],
+                              matchedCols: 0,
+                              specifiedCols: 0};
+                        }
+                        let suggestionsList = [];
+                        const additionalCols = new Set();
+                        _.each(result.data.results, suggestion => {
+                            const dimObj = {};
+                            suggestion.metaTags.forEach((item) => {
+                                const key = String(item.key).toLowerCase();
                                 if (!(key === '_collectorid' || key === "_sourceid" || key === "_rawname")) {
-                                    if (item.value.toLowerCase().slice(queryMatch.length) === queryMatch) {
-                                        cols.add(key);
-                                    }
-                                    else {
-                                        additionalCols.add(key);
-                                    }
+                                  if (item.value.toLowerCase().slice(queryMatch.length)===queryMatch){
+                                      cols.add(key);
+                                  } else{
+                                      additionalCols.add(key);
+                                  }
                                     dimObj[key] = item.value;
                                 }
                             });
-                            suggestion.dimensions.forEach(function (item) {
-                                var key = String(item.key).toLowerCase();
+                            suggestion.dimensions.forEach((item) => {
+                                const key = String(item.key).toLowerCase();
                                 if (!(key === '_collectorid' || key === "_sourceid" || key === "_rawname")) {
-                                    if (item.value.toLowerCase().slice(queryMatch.length) === queryMatch) {
+                                    if (item.value.toLowerCase().slice(queryMatch.length)===queryMatch){
                                         cols.add(key);
-                                    }
-                                    else {
+                                    } else{
                                         additionalCols.add(key);
                                     }
                                     dimObj[key] = item.value;
@@ -414,17 +481,17 @@ System.register(['lodash', 'moment'], function(exports_1) {
                             });
                             suggestionsList.push(dimObj);
                         });
-                        var matchedCols = cols.size;
-                        additionalCols.forEach(function (col) {
-                            cols.add(col);
-                        });
+                        const matchedCols = cols.size;
+                       additionalCols.forEach( (col) => {
+                         cols.add(col);
+                       });
                         return {
-                            cols: cols,
-                            rows: suggestionsList,
-                            matchedCols: matchedCols,
-                            specifiedCols: specifiedCols,
+                          cols,
+                          rows: suggestionsList,
+                            matchedCols,
+                            specifiedCols,
                         };
-                    });
+                    });*/
                 };
                 SumoLogicMetricsDatasource.prototype.parseQuery = function (query) {
                     var queryParts = query.toLowerCase().split(' ');

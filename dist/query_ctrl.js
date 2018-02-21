@@ -53,9 +53,12 @@ System.register(['lodash', 'app/plugins/sdk', './css/query_editor.css!'], functi
                         console.log(query);
                     };
                     this.makeTable = function (information) {
-                        var counter = 1;
+                        if (information.colRows.length === 0) {
+                            return;
+                        }
                         _this.target.html = "<table style=\"width:100%\"><tr>";
-                        information.cols.forEach(function (column, col, set) {
+                        var counter = 1;
+                        information.colNames.forEach(function (column) {
                             if (counter <= information.specifiedCols) {
                                 _this.target.html += "<th class='specified'>" + column + "</th>";
                             }
@@ -67,15 +70,37 @@ System.register(['lodash', 'app/plugins/sdk', './css/query_editor.css!'], functi
                             }
                             counter += 1;
                         });
-                        _this.target.html += "</tr><tr>";
-                        information.rows.forEach(function (row) {
-                            information.cols.forEach(function (dimension) {
-                                var cell = row[dimension] || '';
+                        _this.target.html += "</tr>";
+                        var rowNum, colNum;
+                        for (rowNum = 0; rowNum < information.colRows[0].length; rowNum++) {
+                            _this.target.html += "<tr>";
+                            for (colNum = 0; colNum < information.colRows.length; colNum++) {
+                                var cell = information.colRows[colNum][rowNum] || '';
                                 _this.target.html += "<td>" + cell + "</td>";
-                            });
-                            _this.target.html += "</tr><tr>";
+                            }
+                            _this.target.html += "</tr>";
+                        }
+                        _this.target.html += "</table>";
+                        /*
+                        information.cols.forEach((column, col, set) => {
+                            if (counter<=information.specifiedCols){
+                                this.target.html += "<th class='specified'>"+column+"</th>";
+                            } else if (counter<=information.matchedCols){
+                                this.target.html += "<th class='matched'>"+column+"</th>";
+                            } else {
+                                this.target.html += "<th>"+column+"</th>";
+                            }
+                            counter+=1;
                         });
-                        _this.target.html += "</tr>\n </table>";
+                        this.target.html +=  "</tr><tr>";
+                        information.rows.forEach( (row) => {
+                            information.cols.forEach( (dimension) => {
+                                const cell = row[dimension] || '';
+                                this.target.html += "<td>"+cell+"</td>";
+                            });
+                            this.target.html +=  "</tr><tr>";
+                        });*/
+                        //this.target.html += "</tr>\n </table>";
                     };
                     // Refresh to execute the query, which will update any errors so
                     // we can display them.

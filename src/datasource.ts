@@ -415,59 +415,87 @@ export default class SumoLogicMetricsDatasource {
           offset: 0,
           limit: 10,
       };
-      let queryMatch;
+      let queryMatch = '';
       const queryPart = query.split(' ');
       if (queryPart[queryPart.length-1].length !==0 && queryPart[queryPart.length-1].indexOf('=') < 0) {
         queryMatch = queryPart[queryPart.length-1];
       }
-      let cols = new Set(this.parseQuery(query));
-      const specifiedCols = cols.size;
-      return this._sumoLogicRequest('POST', url, data).then(result => {
-          if (result.data.results.length===0){
-            return {cols: new Set(),
-                rows: [],
-                matchedCols: 0,
-                specifiedCols: 0};
-          }
-          let suggestionsList = [];
-          const additionalCols = new Set();
-          _.each(result.data.results, suggestion => {
-              const dimObj = {};
-              suggestion.metaTags.forEach((item) => {
-                  const key = String(item.key).toLowerCase();
-                  if (!(key === '_collectorid' || key === "_sourceid" || key === "_rawname")) {
-                    if (item.value.toLowerCase().slice(queryMatch.length)===queryMatch){
-                        cols.add(key);
-                    } else{
-                        additionalCols.add(key);
-                    }
-                      dimObj[key] = item.value;
-                  }
-              });
-              suggestion.dimensions.forEach((item) => {
-                  const key = String(item.key).toLowerCase();
-                  if (!(key === '_collectorid' || key === "_sourceid" || key === "_rawname")) {
-                      if (item.value.toLowerCase().slice(queryMatch.length)===queryMatch){
-                          cols.add(key);
-                      } else{
-                          additionalCols.add(key);
-                      }
-                      dimObj[key] = item.value;
-                  }
-              });
-              suggestionsList.push(dimObj);
-          });
-          const matchedCols = cols.size;
-         additionalCols.forEach( (col) => {
-           cols.add(col);
-         });
-          return {
-            cols,
-            rows: suggestionsList,
-              matchedCols,
-              specifiedCols,
-          };
+      let cols = this.parseQuery(query);
+      let colVals: any = {};
+      let colOrder: any = {};
+      let rowNum = 0;
+
+      // initialize specified columns
+      cols.forEach((col) => {
+        colVals[col] = new Array(10);
+        colOrder[col] = 0;
       });
+      return this._sumoLogicRequest('POST', url, data).then(result => {
+          if (result.data.results.length === 0) {
+              return {
+                  colNames: [],
+                  colRows: [],
+                  specifiedCols: 0,
+                  matchedCols: 0,
+              };
+          }
+
+          _.each(result.data.results, metric => {
+
+              metric.metaTags.forEach((item) => {
+                  const key = String(item.key).toLowerCase();
+                  if (_.has(colVals, key)) {
+                      if (colOrder[key]===2 && queryMatch.length>0 && item.value.toLowerCase().slice(0,queryMatch.length)===queryMatch) {
+                          colOrder[key] = 1;
+                      }
+                  } else {
+                          colVals[key] = new Array(10);
+                          colOrder[key] = queryMatch.length>0 && item.value.toLowerCase().slice(0,queryMatch.length)===queryMatch? 1 : 2;
+                  }
+                  colVals[key][rowNum] = item.value;
+              });
+
+              metric.dimensions.forEach((item) => {
+                  const key = String(item.key).toLowerCase();
+                  if (_.has(colVals, key)) {
+                    if (colOrder[key]===2 && queryMatch.length>0 && item.value.toLowerCase().slice(0,queryMatch.length)===queryMatch){
+                      colOrder[key] = 1;
+                    }
+                  } else {
+                      colVals[key] = new Array(10);
+                      colOrder[key] = queryMatch.length>0 && item.value.toLowerCase().slice(0,queryMatch.length)===queryMatch? 1 : 2;
+                  }
+
+                  colVals[key][rowNum] = item.value;
+              });
+
+              rowNum += 1;
+          });
+
+          const zero = [];
+          const one = [];
+          const two = [];
+
+          Object.getOwnPropertyNames(colOrder).forEach((colName) => {
+             if (colOrder[colName]===0){
+               zero.push(colName);
+             } else if (colOrder[colName]===1){
+               one.push(colName);
+             } else {
+               two.push(colName);
+             }
+          });
+
+          const colNames = zero.concat(one).concat(two);
+          const colRows = []
+          colNames.forEach((col) => {
+            colRows.push(colVals[col]);
+          });
+
+          return {colNames, colRows, specifiedCols: zero.length, matchedCols: zero.length+one.length};
+
+      });
+
   }
 
   parseQuery(query) {
