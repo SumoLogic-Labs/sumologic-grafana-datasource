@@ -44,19 +44,50 @@ System.register(['lodash', 'app/plugins/sdk', './css/query_editor.css!'], functi
                             _this.savedCallback = callback;
                         }
                         cb = _this.savedCallback;
-                        //this.datasource.performSuggestQuery(query)
-                        //.then(cb);
-                        _this.datasource.callCatalogBrowser(query)
-                            .then(cb);
+                        if (!_this.target.catalogBrowsing) {
+                            _this.datasource.performSuggestQuery(query)
+                                .then(cb);
+                        }
+                        else {
+                            _this.datasource.callCatalogBrowser(query)
+                                .then(cb);
+                        }
                     };
                     this.showValue = function (query) {
                         console.log(query);
                     };
+                    this.updateHtml = function (information) {
+                        if (_this.target.catalogBrowsing) {
+                            _this.makeTable(information);
+                        }
+                        else {
+                            _this.makeList(information);
+                        }
+                    };
+                    this.makeList = function (information) {
+                        _this.target.html = "<ul>";
+                        information.suggestions.every(function (suggestion, index) {
+                            if (index > 11) {
+                                return false;
+                            }
+                            target.html += "<li><span class='matched'>" + information.query + "</span>" + suggestion.slice(information.query.length) + "</li>";
+                            return true;
+                        });
+                        _this.target.html += "</ul>";
+                    };
                     this.makeTable = function (information) {
+                        if (information.falseReturn) {
+                            return;
+                        }
+                        _this.target.html = "<div class='keys' style=\"width:100%\"><span class='keysHeader'>Matching Keys: </span>";
+                        information.keys.forEach(function (key) {
+                            _this.target.html += key + ", ";
+                        });
+                        _this.target.html += "</div>";
                         if (information.colRows.length === 0) {
                             return;
                         }
-                        _this.target.html = "<table style=\"width:100%\"><tr>";
+                        _this.target.html += "<table style=\"width:100%\"><tr>";
                         var counter = 1;
                         information.colNames.forEach(function (column) {
                             if (counter <= information.specifiedCols) {

@@ -259,7 +259,7 @@ export default class SumoLogicMetricsDatasource {
   performSuggestQuery(query) {
     let url = '/api/v1/metrics/suggest/autocomplete';
     let data = {
-      query: query,
+      query,
       pos: query.length,
       queryStartTime: this.start,
       queryEndTime: this.end
@@ -271,7 +271,7 @@ export default class SumoLogicMetricsDatasource {
           suggestionsList.push(item.replacement.text);
         });
       });
-      return suggestionsList;
+      return {suggestions: suggestionsList, query};
     });
   }
 
@@ -410,42 +410,68 @@ export default class SumoLogicMetricsDatasource {
   };
 
   callCatalogBrowser(query) {
+      this.latestQuery = query;
       let url = '/api/v1/metrics/meta/catalog/query';
       let data = {
           query: query+'*',
           offset: 0,
           limit: 10,
       };
-      let queryMatch = '';
-      this.latestQuery = query;
-      const queryPart = query.split(' ');
-      if (queryPart[queryPart.length-1].length !==0 && queryPart[queryPart.length-1].indexOf('=') < 0) {
-        queryMatch = queryPart[queryPart.length-1];
-      }
-      let cols = this.parseQuery(query);
-      let colVals: any = {};
-      let colOrder: any = {};
-      let rowNum = 0;
+      let keysUrl = '/api/v1/metrics/suggest/autocomplete';
+      let keysData = {
+          query,
+          pos: query.length,
+          queryStartTime: this.start,
+          queryEndTime: this.end
+      };
 
-      // initialize specified columns
-      cols.forEach((col) => {
-        colVals[col] = new Array(10);
-        colOrder[col] = 0;
-      });
-      return this._sumoLogicRequest('POST', url, data).then(result => {
-          if (result.data.results.length === 0 || this.latestQuery != query) {
+      return this.$q.all([
+          this._sumoLogicRequest('POST', url, data),
+          this._sumoLogicRequest('POST', keysUrl, keysData)
+      ]).then(results => {
+          let result = results[0];
+          let keys = [];
+
+          if (results[1].data.suggestions[0] && results[1].data.suggestions[0].sectionName.toLowerCase()==="keys") {
+              _.each(results[1].data.suggestions[0].items, item => {
+                  keys.push(item.display);
+              });
+          }
+
+          if (result.data.results.length === 0 || this.latestQuery !== query) {
               return {
                   colNames: [],
                   colRows: [],
                   specifiedCols: 0,
                   matchedCols: 0,
+                  falseReturn: this.latestQuery !== query,
+                  keys,
               };
           }
+
+          let queryMatch = '';
+          const queryPart = query.split(' ');
+          if (queryPart[queryPart.length-1].length !==0 && queryPart[queryPart.length-1].indexOf('=') < 0) {
+              queryMatch = queryPart[queryPart.length-1];
+          }
+          let cols = this.parseQuery(query);
+          let colVals: any = {};
+          let colOrder: any = {};
+          let rowNum = 0;
+
+          // initialize specified columns
+          cols.forEach((col) => {
+              colVals[col] = new Array(10);
+              colOrder[col] = 0;
+          });
 
           _.each(result.data.results, metric => {
 
               metric.metaTags.forEach((item) => {
                   const key = String(item.key).toLowerCase();
+                  if (key==="_rawname") {
+                      return;
+                  }
                   const queryInside = queryMatch.length>0 && item.value.toLowerCase().slice(0,queryMatch.length)===queryMatch;
                   if (_.has(colVals, key)) {
                       if (colOrder[key]===2 &&  queryInside) {
@@ -455,11 +481,15 @@ export default class SumoLogicMetricsDatasource {
                           colVals[key] = new Array(10);
                           colOrder[key] = queryInside? 1 : 2;
                   }
-                  colVals[key][rowNum] = queryInside? "<span class='matched'>"+queryMatch+"</span>"+item.value.slice(queryMatch.length) : item.value;
+                  colVals[key][rowNum] = queryInside? "<span class='matched'>"+queryMatch+"</span>"+
+                      item.value.slice(queryMatch.length) : item.value;
               });
 
               metric.dimensions.forEach((item) => {
                   const key = String(item.key).toLowerCase();
+                  if (key==="_rawname") {
+                      return;
+                  }
                   const queryInside = queryMatch.length>0 && item.value.toLowerCase().slice(0,queryMatch.length)===queryMatch;
                   if (_.has(colVals, key)) {
                     if (colOrder[key]===2 && queryInside){
@@ -470,7 +500,8 @@ export default class SumoLogicMetricsDatasource {
                       colOrder[key] = queryInside? 1 : 2;
                   }
 
-                  colVals[key][rowNum] = queryInside? "<span class='matched'>"+queryMatch+"</span>"+item.value.slice(queryMatch.length) : item.value;
+                  colVals[key][rowNum] = queryInside? "<span class='matched'>"+queryMatch+"</span>"+
+                      item.value.slice(queryMatch.length) : item.value;
               });
 
               rowNum += 1;
@@ -491,12 +522,12 @@ export default class SumoLogicMetricsDatasource {
           });
 
           const colNames = zero.concat(one).concat(two);
-          const colRows = []
+          const colRows = [];
           colNames.forEach((col) => {
             colRows.push(colVals[col]);
           });
 
-          return {colNames, colRows, specifiedCols: zero.length, matchedCols: zero.length+one.length};
+          return {keys, colNames, colRows, specifiedCols: zero.length, matchedCols: zero.length+one.length, falseReturn: false};
 
       });
 

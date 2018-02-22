@@ -12,6 +12,8 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
   suggestMetrics: any;
   showValue: any;
   makeTable: any;
+  makeList: any;
+  updateHtml: any;
   savedCallback: any;
   html: string;
 
@@ -42,27 +44,59 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
         this.savedCallback = callback;
       }
       cb = this.savedCallback;
-      //this.datasource.performSuggestQuery(query)
-        //.then(cb);
-      this.datasource.callCatalogBrowser(query)
+
+      if (!this.target.catalogBrowsing) {
+          this.datasource.performSuggestQuery(query)
           .then(cb);
+      } else {
+          this.datasource.callCatalogBrowser(query)
+              .then(cb);
+      }
     };
 
     this.showValue = (query) => {
         console.log(query);
     };
 
+    this.updateHtml = (information) => {
+        if (this.target.catalogBrowsing){
+            this.makeTable(information);
+        } else {
+            this.makeList(information);
+        }
+      };
+
+      this.makeList = (information) => {
+          this.target.html = "<ul>";
+          information.suggestions.every((suggestion, index) => {
+              if (index>11) {
+                  return false;
+              }
+              target.html+="<li><span class='matched'>"+information.query+"</span>"+suggestion.slice(information.query.length)+"</li>";
+              return true;
+          });
+          this.target.html += "</ul>";
+
+      };
+
     this.makeTable = (information) => {
-        if (information.colRows.length===0){
+        if (information.falseReturn) {
             return;
         }
-        this.target.html = "<table style=\"width:100%\"><tr>";
+        this.target.html = "<div class='keys' style=\"width:100%\"><span class='keysHeader'>Matching Keys: </span>";
+
+        information.keys.forEach((key) => {
+                this.target.html += key +", ";
+        });
+        this.target.html += "</div>";
+
+        if (information.colRows.length===0){ return;}
+
+        this.target.html += "<table style=\"width:100%\"><tr>";
         let counter = 1;
         information.colNames.forEach((column) => {
             if (counter<=information.specifiedCols){
                 this.target.html += "<th class='specified'>"+column+"</th>";
-            //} else if (counter<=information.matchedCols){
-                //this.target.html += "<th class='matched'>"+column+"</th>";
             } else {
             this.target.html += "<th>" + column + "</th>";
             }

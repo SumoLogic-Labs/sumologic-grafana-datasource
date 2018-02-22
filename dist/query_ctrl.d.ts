@@ -7,6 +7,8 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
     suggestMetrics: any;
     showValue: any;
     makeTable: any;
+    makeList: any;
+    updateHtml: any;
     savedCallback: any;
     html: string;
     /** @ngInject */

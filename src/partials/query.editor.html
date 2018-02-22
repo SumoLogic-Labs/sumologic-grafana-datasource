@@ -3,19 +3,26 @@
         <div class="gf-form gf-form--grow">
             <label class="gf-form-label width-6">Query</label>
             <label class="switch">
-                <input type="checkbox" ng-model="ctrl.target.catalogBrowsing"
+                <input id="toggle" type="checkbox" ng-model="ctrl.target.catalogBrowsing"
                 ng-change="ctrl.showValue(ctrl.target.catalogBrowsing)">
                 <span class="slider round"></span>
             </label>
             <label class="gf-form--grow">
                 <input type="text" class="gf-form-input" ng-model="ctrl.target.expr"
-                       ng-change="ctrl.suggestMetrics(ctrl.target.expr, ctrl.makeTable, ctrl.target.html)"
+                       ng-change="ctrl.suggestMetrics(ctrl.target.expr, ctrl.updateHtml, ctrl.target.html)"
                        ng-blur="ctrl.panelCtrl.refresh()"/>
                 <div class="haha" ng-bind-html="ctrl.target.html"></div>
             </label>
         </div>
     </div>
     <script>
+        /*var doc_keyUp =  _.debounce(function(e){
+            if (e.shiftKey && e.keyCode == 84) {
+                document.getElementById("toggle").click();
+                console.log("haha");
+            }
+        },500);
+        document.addEventListener('keyup', doc_keyUp, false);*/
         history.pushState(null, null, location.href);
         window.onpopstate = function(event) {
             history.go(1);

@@ -236,7 +236,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                                 suggestionsList.push(item.replacement.text);
                             });
                         });
-                        return suggestionsList;
+                        return { suggestions: suggestionsList, query: query };
                     });
                 };
                 // Transform results from the Sumo Logic Metrics API called in
@@ -365,39 +365,61 @@ System.register(['lodash', 'moment'], function(exports_1) {
                 ;
                 SumoLogicMetricsDatasource.prototype.callCatalogBrowser = function (query) {
                     var _this = this;
+                    this.latestQuery = query;
                     var url = '/api/v1/metrics/meta/catalog/query';
                     var data = {
                         query: query + '*',
                         offset: 0,
                         limit: 10,
                     };
-                    var queryMatch = '';
-                    this.latestQuery = query;
-                    var queryPart = query.split(' ');
-                    if (queryPart[queryPart.length - 1].length !== 0 && queryPart[queryPart.length - 1].indexOf('=') < 0) {
-                        queryMatch = queryPart[queryPart.length - 1];
-                    }
-                    var cols = this.parseQuery(query);
-                    var colVals = {};
-                    var colOrder = {};
-                    var rowNum = 0;
-                    // initialize specified columns
-                    cols.forEach(function (col) {
-                        colVals[col] = new Array(10);
-                        colOrder[col] = 0;
-                    });
-                    return this._sumoLogicRequest('POST', url, data).then(function (result) {
-                        if (result.data.results.length === 0 || _this.latestQuery != query) {
+                    var keysUrl = '/api/v1/metrics/suggest/autocomplete';
+                    var keysData = {
+                        query: query,
+                        pos: query.length,
+                        queryStartTime: this.start,
+                        queryEndTime: this.end
+                    };
+                    return this.$q.all([
+                        this._sumoLogicRequest('POST', url, data),
+                        this._sumoLogicRequest('POST', keysUrl, keysData)
+                    ]).then(function (results) {
+                        var result = results[0];
+                        var keys = [];
+                        if (results[1].data.suggestions[0] && results[1].data.suggestions[0].sectionName.toLowerCase() === "keys") {
+                            lodash_1.default.each(results[1].data.suggestions[0].items, function (item) {
+                                keys.push(item.display);
+                            });
+                        }
+                        if (result.data.results.length === 0 || _this.latestQuery !== query) {
                             return {
                                 colNames: [],
                                 colRows: [],
                                 specifiedCols: 0,
                                 matchedCols: 0,
+                                falseReturn: _this.latestQuery !== query,
+                                keys: keys,
                             };
                         }
+                        var queryMatch = '';
+                        var queryPart = query.split(' ');
+                        if (queryPart[queryPart.length - 1].length !== 0 && queryPart[queryPart.length - 1].indexOf('=') < 0) {
+                            queryMatch = queryPart[queryPart.length - 1];
+                        }
+                        var cols = _this.parseQuery(query);
+                        var colVals = {};
+                        var colOrder = {};
+                        var rowNum = 0;
+                        // initialize specified columns
+                        cols.forEach(function (col) {
+                            colVals[col] = new Array(10);
+                            colOrder[col] = 0;
+                        });
                         lodash_1.default.each(result.data.results, function (metric) {
                             metric.metaTags.forEach(function (item) {
                                 var key = String(item.key).toLowerCase();
+                                if (key === "_rawname") {
+                                    return;
+                                }
                                 var queryInside = queryMatch.length > 0 && item.value.toLowerCase().slice(0, queryMatch.length) === queryMatch;
                                 if (lodash_1.default.has(colVals, key)) {
                                     if (colOrder[key] === 2 && queryInside) {
@@ -408,10 +430,14 @@ System.register(['lodash', 'moment'], function(exports_1) {
                                     colVals[key] = new Array(10);
                                     colOrder[key] = queryInside ? 1 : 2;
                                 }
-                                colVals[key][rowNum] = queryInside ? "<span class='matched'>" + queryMatch + "</span>" + item.value.slice(queryMatch.length) : item.value;
+                                colVals[key][rowNum] = queryInside ? "<span class='matched'>" + queryMatch + "</span>" +
+                                    item.value.slice(queryMatch.length) : item.value;
                             });
                             metric.dimensions.forEach(function (item) {
                                 var key = String(item.key).toLowerCase();
+                                if (key === "_rawname") {
+                                    return;
+                                }
                                 var queryInside = queryMatch.length > 0 && item.value.toLowerCase().slice(0, queryMatch.length) === queryMatch;
                                 if (lodash_1.default.has(colVals, key)) {
                                     if (colOrder[key] === 2 && queryInside) {
@@ -422,7 +448,8 @@ System.register(['lodash', 'moment'], function(exports_1) {
                                     colVals[key] = new Array(10);
                                     colOrder[key] = queryInside ? 1 : 2;
                                 }
-                                colVals[key][rowNum] = queryInside ? "<span class='matched'>" + queryMatch + "</span>" + item.value.slice(queryMatch.length) : item.value;
+                                colVals[key][rowNum] = queryInside ? "<span class='matched'>" + queryMatch + "</span>" +
+                                    item.value.slice(queryMatch.length) : item.value;
                             });
                             rowNum += 1;
                         });
@@ -445,7 +472,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         colNames.forEach(function (col) {
                             colRows.push(colVals[col]);
                         });
-                        return { colNames: colNames, colRows: colRows, specifiedCols: zero.length, matchedCols: zero.length + one.length };
+                        return { keys: keys, colNames: colNames, colRows: colRows, specifiedCols: zero.length, matchedCols: zero.length + one.length, falseReturn: false };
                     });
                 };
                 SumoLogicMetricsDatasource.prototype.parseQuery = function (query) {

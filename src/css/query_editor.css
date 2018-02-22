@@ -83,7 +83,7 @@ input:checked + .slider:before {
     display: block;
     max-height: 300px;
     position:absolute;
-    max-width:100%;
+    width:100%;
     overflow-y:auto;
     overflow-x:auto;
 }
@@ -109,5 +109,30 @@ th {
 .specified {
   background-color: #444;
   color: white;
+}
+
+.keys {
+    padding:8px;
+    padding-bottom:10px;
+    color: #777;
+}
+.keysHeader {
+  font-weight:bold;
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+li {
+    padding: 2px;
+}
+
+ul {
+    padding: 5px;
 }
 
