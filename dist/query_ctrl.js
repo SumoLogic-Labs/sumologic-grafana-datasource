@@ -79,15 +79,13 @@ System.register(['lodash', 'app/plugins/sdk', './css/query_editor.css!'], functi
                         if (information.falseReturn) {
                             return;
                         }
+                        console.log(information);
                         _this.target.html = "<div class='keys' style=\"width:100%\"><span class='keysHeader'>Matching Keys: </span>";
-                        information.keys.forEach(function (key) {
-                            _this.target.html += key + ", ";
-                        });
-                        _this.target.html += "</div>";
+                        _this.target.html += information.keys + "</div>";
                         if (information.colRows.length === 0) {
                             return;
                         }
-                        _this.target.html += "<table style=\"width:100%\"><tr>";
+                        _this.target.html += "<table style=\"width:100%\"><tr><th class='first'></th>";
                         var counter = 1;
                         information.colNames.forEach(function (column) {
                             if (counter <= information.specifiedCols) {
@@ -101,7 +99,7 @@ System.register(['lodash', 'app/plugins/sdk', './css/query_editor.css!'], functi
                         _this.target.html += "</tr>";
                         var rowNum, colNum;
                         for (rowNum = 0; rowNum < information.colRows[0].length; rowNum++) {
-                            _this.target.html += "<tr>";
+                            _this.target.html += "<tr><td class='first'> M" + (rowNum + 1) + " </td>";
                             for (colNum = 0; colNum < information.colRows.length; colNum++) {
                                 var cell = information.colRows[colNum][rowNum] || '';
                                 if (colNum < information.specifiedCols) {

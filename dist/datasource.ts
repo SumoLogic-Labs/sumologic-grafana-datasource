@@ -430,13 +430,16 @@ export default class SumoLogicMetricsDatasource {
           this._sumoLogicRequest('POST', keysUrl, keysData)
       ]).then(results => {
           let result = results[0];
-          let keys = [];
+          let keys = "";
 
-          if (results[1].data.suggestions[0] && results[1].data.suggestions[0].sectionName.toLowerCase()==="keys") {
+          if (results[1].data.suggestions[0] && results[1].data.suggestions[0].sectionName !== null
+              && results[1].data.suggestions[0].sectionName.toLowerCase()==="keys") {
               _.each(results[1].data.suggestions[0].items, item => {
-                  keys.push(item.display);
+                  keys+=item.display+", ";
               });
           }
+
+          keys = keys.length===0 ?  "none": keys.slice(0, keys.length-2);
 
           if (result.data.results.length === 0 || this.latestQuery !== query) {
               return {
@@ -458,10 +461,11 @@ export default class SumoLogicMetricsDatasource {
           let colVals: any = {};
           let colOrder: any = {};
           let rowNum = 0;
+          const numRows = result.data.results.length;
 
           // initialize specified columns
           cols.forEach((col) => {
-              colVals[col] = new Array(10);
+              colVals[col] = new Array(numRows);
               colOrder[col] = 0;
           });
 
@@ -478,7 +482,7 @@ export default class SumoLogicMetricsDatasource {
                           colOrder[key] = 1;
                       }
                   } else {
-                          colVals[key] = new Array(10);
+                          colVals[key] = new Array(numRows);
                           colOrder[key] = queryInside? 1 : 2;
                   }
                   colVals[key][rowNum] = queryInside? "<span class='matched'>"+queryMatch+"</span>"+
@@ -496,7 +500,7 @@ export default class SumoLogicMetricsDatasource {
                       colOrder[key] = 1;
                     }
                   } else {
-                      colVals[key] = new Array(10);
+                      colVals[key] = new Array(numRows);
                       colOrder[key] = queryInside? 1 : 2;
                   }
 

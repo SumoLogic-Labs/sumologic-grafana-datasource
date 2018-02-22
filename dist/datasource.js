@@ -384,12 +384,14 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         this._sumoLogicRequest('POST', keysUrl, keysData)
                     ]).then(function (results) {
                         var result = results[0];
-                        var keys = [];
-                        if (results[1].data.suggestions[0] && results[1].data.suggestions[0].sectionName.toLowerCase() === "keys") {
+                        var keys = "";
+                        if (results[1].data.suggestions[0] && results[1].data.suggestions[0].sectionName !== null
+                            && results[1].data.suggestions[0].sectionName.toLowerCase() === "keys") {
                             lodash_1.default.each(results[1].data.suggestions[0].items, function (item) {
-                                keys.push(item.display);
+                                keys += item.display + ", ";
                             });
                         }
+                        keys = keys.length === 0 ? "none" : keys.slice(0, keys.length - 2);
                         if (result.data.results.length === 0 || _this.latestQuery !== query) {
                             return {
                                 colNames: [],
@@ -409,9 +411,10 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         var colVals = {};
                         var colOrder = {};
                         var rowNum = 0;
+                        var numRows = result.data.results.length;
                         // initialize specified columns
                         cols.forEach(function (col) {
-                            colVals[col] = new Array(10);
+                            colVals[col] = new Array(numRows);
                             colOrder[col] = 0;
                         });
                         lodash_1.default.each(result.data.results, function (metric) {
@@ -427,7 +430,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                                     }
                                 }
                                 else {
-                                    colVals[key] = new Array(10);
+                                    colVals[key] = new Array(numRows);
                                     colOrder[key] = queryInside ? 1 : 2;
                                 }
                                 colVals[key][rowNum] = queryInside ? "<span class='matched'>" + queryMatch + "</span>" +
@@ -445,7 +448,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                                     }
                                 }
                                 else {
-                                    colVals[key] = new Array(10);
+                                    colVals[key] = new Array(numRows);
                                     colOrder[key] = queryInside ? 1 : 2;
                                 }
                                 colVals[key][rowNum] = queryInside ? "<span class='matched'>" + queryMatch + "</span>" +

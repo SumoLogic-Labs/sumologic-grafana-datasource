@@ -83,16 +83,13 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
         if (information.falseReturn) {
             return;
         }
+        console.log(information);
         this.target.html = "<div class='keys' style=\"width:100%\"><span class='keysHeader'>Matching Keys: </span>";
-
-        information.keys.forEach((key) => {
-                this.target.html += key +", ";
-        });
-        this.target.html += "</div>";
+        this.target.html += information.keys + "</div>";
 
         if (information.colRows.length===0){ return;}
 
-        this.target.html += "<table style=\"width:100%\"><tr>";
+        this.target.html += "<table style=\"width:100%\"><tr><th class='first'></th>";
         let counter = 1;
         information.colNames.forEach((column) => {
             if (counter<=information.specifiedCols){
@@ -105,7 +102,7 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
         this.target.html += "</tr>";
         let rowNum, colNum;
         for (rowNum = 0; rowNum < information.colRows[0].length; rowNum++) {
-            this.target.html += "<tr>";
+            this.target.html += "<tr><td class='first'> M"+(rowNum+1)+" </td>";
             for (colNum = 0; colNum < information.colRows.length; colNum++) {
                 const cell = information.colRows[colNum][rowNum] || '';
                 if (colNum<information.specifiedCols) {

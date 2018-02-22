@@ -80,7 +80,7 @@ input:checked + .slider:before {
 .haha {
     background: #141414;
     opacity: .75;
-    display: block;
+    display: none;
     max-height: 300px;
     position:absolute;
     width:100%;
@@ -94,6 +94,7 @@ input:checked + .slider:before {
 
 th, td {
   padding: 5px;
+    word-break:keep-all;
 }
 
 th {
@@ -135,4 +136,10 @@ li {
 ul {
     padding: 5px;
 }
+
+.first {
+    border-right: 1px solid;
+}
+
+table th { border-bottom: 1px solid;}
 
