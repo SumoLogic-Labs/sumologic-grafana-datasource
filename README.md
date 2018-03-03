@@ -1,4 +1,4 @@
-**Note** Information for plugin developers are [at the end of this document](#plugin-development).
+**Note** Information for plugin developers is [at the end of this document](#plugin-development).
 
 This page describes the sumologic-metrics-grafana-datasource plugin, a datasource plugin for Grafana that can deliver metrics from your Sumo deployment to Grafana. After installing and configuring the plugin, you can query and visualize metrics from Sumo in the Grafana user interface. You initiate a query from the Grafana UI, the search runs on Sumo, and results are returned to Grafana.
 
