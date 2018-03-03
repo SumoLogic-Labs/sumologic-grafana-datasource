@@ -79,7 +79,7 @@ Where `path_to_plugins`  is the path to the plugins folder in your Grafana envir
 
 # Query metrics in Grafana
 
-You can query your Sumo metrics using the same query syntax you use in the the Sumo UI. For more information, see [Metrics Queries](https://help.sumologic.com/Metrics/Working-with-Metrics/Metrics-Queries) in Sumo help.
+You can query your Sumo metrics using the same query syntax you use in the Sumo UI. For more information, see [Metrics Queries](https://help.sumologic.com/Metrics/Working-with-Metrics/Metrics-Queries) in Sumo help.
 
 
 
@@ -133,7 +133,7 @@ Click the **+NEW** button.
 
 ![new-button](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/new-button.png)
 
-There are multiple template types. The one that is most customizable with Sumo is the **Query** tempate.  
+There are multiple template types. The one that is most customizable with Sumo is the **Query** template.  
 
 ![templatetypes](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/template-types.png)
 
