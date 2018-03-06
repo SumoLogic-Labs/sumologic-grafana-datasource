@@ -429,38 +429,39 @@ System.register(['lodash', 'moment'], function(exports_1) {
                                 if (key === "_rawname") {
                                     return;
                                 }
-                                var queryInside = queryMatch.length > 0 && new RegExp(parsed.openQuery.join("|")).test(item.value.toLowerCase());
+                                //const queryInside = queryMatch.length>0 && new RegExp(parsed.openQuery.join("|")).test(item.value.toLowerCase());
+                                var qF = _this.parseFind(parsed.openQuery, item.value.toLowerCase());
                                 if (lodash_1.default.has(colVals, key)) {
-                                    if (colOrder[key] === 2 && queryInside) {
+                                    if (colOrder[key] === 2 && qF.queryInside) {
                                         colOrder[key] = 1;
                                     }
                                 }
                                 else {
                                     colVals[key] = new Array(numRows);
-                                    colOrder[key] = queryInside ? 1 : 2;
+                                    colOrder[key] = qF.queryInside ? 1 : 2;
                                 }
                                 //colVals[key][rowNum] = queryInside? "<span class='matched'>"+queryMatch+"</span>"+
                                 //item.value.slice(queryMatch.length) : item.value;
-                                colVals[key][rowNum] = item.value;
+                                colVals[key][rowNum] = qF.newValue;
                             });
                             metric.dimensions.forEach(function (item) {
                                 var key = String(item.key).toLowerCase();
                                 if (key === "_rawname") {
                                     return;
                                 }
-                                var queryInside = queryMatch.length > 0 && new RegExp(parsed.openQuery.join("|")).test(item.value.toLowerCase());
+                                var qF = _this.parseFind(parsed.openQuery, item.value.toLowerCase());
                                 if (lodash_1.default.has(colVals, key)) {
-                                    if (colOrder[key] === 2 && queryInside) {
+                                    if (colOrder[key] === 2 && qF.queryInside) {
                                         colOrder[key] = 1;
                                     }
                                 }
                                 else {
                                     colVals[key] = new Array(numRows);
-                                    colOrder[key] = queryInside ? 1 : 2;
+                                    colOrder[key] = qF.queryInside ? 1 : 2;
                                 }
                                 //colVals[key][rowNum] = queryInside? "<span class='matched'>"+queryMatch+"</span>"+
                                 //item.value.slice(queryMatch.length) : item.value;
-                                colVals[key][rowNum] = item.value;
+                                colVals[key][rowNum] = qF.newValue;
                             });
                             rowNum += 1;
                         });
@@ -503,6 +504,21 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         }
                     });
                     return { filters: filters, newQuery: newQuery, openQuery: openQuery };
+                };
+                SumoLogicMetricsDatasource.prototype.parseFind = function (queryParts, value) {
+                    var queryInside = false;
+                    var newValue = value;
+                    queryParts.forEach(function (part) {
+                        if (part.length === 0) {
+                            return;
+                        }
+                        var ind = newValue.indexOf(part);
+                        if (ind >= 0) {
+                            queryInside = true;
+                            newValue = newValue.slice(0, ind) + "<span class='matched'>" + part + "</span>" + newValue.slice(part.length + ind, newValue.length);
+                        }
+                    });
+                    return { queryInside: queryInside, newValue: newValue };
                 };
                 return SumoLogicMetricsDatasource;
             })();

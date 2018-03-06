@@ -481,18 +481,19 @@ export default class SumoLogicMetricsDatasource {
                   if (key==="_rawname") {
                       return;
                   }
-                  const queryInside = queryMatch.length>0 && new RegExp(parsed.openQuery.join("|")).test(item.value.toLowerCase());
+                  //const queryInside = queryMatch.length>0 && new RegExp(parsed.openQuery.join("|")).test(item.value.toLowerCase());
+                  const qF = this.parseFind(parsed.openQuery,item.value.toLowerCase());
                   if (_.has(colVals, key)) {
-                      if (colOrder[key]===2 &&  queryInside) {
+                      if (colOrder[key]===2 &&  qF.queryInside) {
                           colOrder[key] = 1;
                       }
                   } else {
                           colVals[key] = new Array(numRows);
-                          colOrder[key] = queryInside? 1 : 2;
+                          colOrder[key] = qF.queryInside? 1 : 2;
                   }
                   //colVals[key][rowNum] = queryInside? "<span class='matched'>"+queryMatch+"</span>"+
                       //item.value.slice(queryMatch.length) : item.value;
-                  colVals[key][rowNum] = item.value;
+                  colVals[key][rowNum] = qF.newValue;
               });
 
               metric.dimensions.forEach((item) => {
@@ -500,19 +501,19 @@ export default class SumoLogicMetricsDatasource {
                   if (key==="_rawname") {
                       return;
                   }
-                  const queryInside = queryMatch.length>0 && new RegExp(parsed.openQuery.join("|")).test(item.value.toLowerCase());
+                  const qF = this.parseFind(parsed.openQuery,item.value.toLowerCase());
                   if (_.has(colVals, key)) {
-                    if (colOrder[key]===2 && queryInside){
+                    if (colOrder[key]===2 && qF.queryInside){
                       colOrder[key] = 1;
                     }
                   } else {
                       colVals[key] = new Array(numRows);
-                      colOrder[key] = queryInside? 1 : 2;
+                      colOrder[key] = qF.queryInside? 1 : 2;
                   }
 
                   //colVals[key][rowNum] = queryInside? "<span class='matched'>"+queryMatch+"</span>"+
                       //item.value.slice(queryMatch.length) : item.value;
-                  colVals[key][rowNum] = item.value;
+                  colVals[key][rowNum] = qF.newValue;
               });
 
               rowNum += 1;
@@ -562,4 +563,20 @@ export default class SumoLogicMetricsDatasource {
     return {filters, newQuery, openQuery};
   }
 
+  parseFind(queryParts, value) {
+      let queryInside = false;
+      let newValue = value;
+      queryParts.forEach((part) => {
+          if (part.length===0) {
+              return;
+          }
+          const ind = newValue.indexOf(part);
+          if (ind>=0){
+              queryInside = true;
+              newValue= newValue.slice(0,ind)+"<span class='matched'>"+part+"</span>"+newValue.slice(part.length+ind, newValue.length);
+          }
+      });
+      return {queryInside, newValue};
+
+  }
 }

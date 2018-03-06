@@ -86,7 +86,6 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
         if (information.falseReturn) {
             return;
         }
-        console.log(information);
         this.target.html = "<div class='keys' style=\"width:100%\"><span class='keysHeader'>Matching Keys: </span>";
         this.target.html += information.keys + "</div>";
 

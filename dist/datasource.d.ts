@@ -29,4 +29,8 @@ export default class SumoLogicMetricsDatasource {
         newQuery: string;
         openQuery: any[];
     };
+    parseFind(queryParts: any, value: any): {
+        queryInside: boolean;
+        newValue: any;
+    };
 }

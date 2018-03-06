@@ -82,7 +82,6 @@ System.register(['lodash', 'app/plugins/sdk', './css/query_editor.css!'], functi
                         if (information.falseReturn) {
                             return;
                         }
-                        console.log(information);
                         _this.target.html = "<div class='keys' style=\"width:100%\"><span class='keysHeader'>Matching Keys: </span>";
                         _this.target.html += information.keys + "</div>";
                         if (information.colRows.length === 0) {
