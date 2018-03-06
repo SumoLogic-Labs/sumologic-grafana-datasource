@@ -65,6 +65,9 @@ System.register(['lodash', 'app/plugins/sdk', './css/query_editor.css!'], functi
                         }
                     };
                     this.makeList = function (information) {
+                        if (information.falseReturn) {
+                            return;
+                        }
                         _this.target.html = "<ul>";
                         information.suggestions.every(function (suggestion, index) {
                             if (index > 11) {

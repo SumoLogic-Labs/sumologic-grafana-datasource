@@ -264,14 +264,18 @@ export default class SumoLogicMetricsDatasource {
       queryStartTime: this.start,
       queryEndTime: this.end
     };
+    this.latestQuery = query;
     return this._sumoLogicRequest('POST', url, data).then(result => {
+        if (this.latestQuery !== query) {
+            return {suggestions: [], query, falseReturn: true};
+        }
       let suggestionsList = [];
       _.each(result.data.suggestions, suggestion => {
         _.each(suggestion.items, item => {
           suggestionsList.push(item.replacement.text);
         });
       });
-      return {suggestions: suggestionsList, query};
+      return {suggestions: suggestionsList, query, falseReturn: false};
     });
   }
 
@@ -411,9 +415,10 @@ export default class SumoLogicMetricsDatasource {
 
   callCatalogBrowser(query) {
       this.latestQuery = query;
+      const parsed = this.parseQuery(query);
       let url = '/api/v1/metrics/meta/catalog/query';
       let data = {
-          query: query+'*',
+          query: parsed.newQuery,
           offset: 0,
           limit: 10,
       };
@@ -457,7 +462,7 @@ export default class SumoLogicMetricsDatasource {
           if (queryPart[queryPart.length-1].length !==0 && queryPart[queryPart.length-1].indexOf('=') < 0) {
               queryMatch = queryPart[queryPart.length-1];
           }
-          let cols = this.parseQuery(query);
+          let cols = parsed.filters;
           let colVals: any = {};
           let colOrder: any = {};
           let rowNum = 0;
@@ -476,7 +481,7 @@ export default class SumoLogicMetricsDatasource {
                   if (key==="_rawname") {
                       return;
                   }
-                  const queryInside = queryMatch.length>0 && item.value.toLowerCase().slice(0,queryMatch.length)===queryMatch;
+                  const queryInside = queryMatch.length>0 && new RegExp(parsed.openQuery.join("|")).test(item.value.toLowerCase());
                   if (_.has(colVals, key)) {
                       if (colOrder[key]===2 &&  queryInside) {
                           colOrder[key] = 1;
@@ -485,8 +490,9 @@ export default class SumoLogicMetricsDatasource {
                           colVals[key] = new Array(numRows);
                           colOrder[key] = queryInside? 1 : 2;
                   }
-                  colVals[key][rowNum] = queryInside? "<span class='matched'>"+queryMatch+"</span>"+
-                      item.value.slice(queryMatch.length) : item.value;
+                  //colVals[key][rowNum] = queryInside? "<span class='matched'>"+queryMatch+"</span>"+
+                      //item.value.slice(queryMatch.length) : item.value;
+                  colVals[key][rowNum] = item.value;
               });
 
               metric.dimensions.forEach((item) => {
@@ -494,7 +500,7 @@ export default class SumoLogicMetricsDatasource {
                   if (key==="_rawname") {
                       return;
                   }
-                  const queryInside = queryMatch.length>0 && item.value.toLowerCase().slice(0,queryMatch.length)===queryMatch;
+                  const queryInside = queryMatch.length>0 && new RegExp(parsed.openQuery.join("|")).test(item.value.toLowerCase());
                   if (_.has(colVals, key)) {
                     if (colOrder[key]===2 && queryInside){
                       colOrder[key] = 1;
@@ -504,8 +510,9 @@ export default class SumoLogicMetricsDatasource {
                       colOrder[key] = queryInside? 1 : 2;
                   }
 
-                  colVals[key][rowNum] = queryInside? "<span class='matched'>"+queryMatch+"</span>"+
-                      item.value.slice(queryMatch.length) : item.value;
+                  //colVals[key][rowNum] = queryInside? "<span class='matched'>"+queryMatch+"</span>"+
+                      //item.value.slice(queryMatch.length) : item.value;
+                  colVals[key][rowNum] = item.value;
               });
 
               rowNum += 1;
@@ -539,14 +546,20 @@ export default class SumoLogicMetricsDatasource {
 
   parseQuery(query) {
     const queryParts = query.toLowerCase().split(' ');
+    let newQuery = '';
+    const openQuery = [];
     const filters = [];
     queryParts.forEach((part) => {
       const params = part.split('=');
       if (params.length>1) {
         filters.push(params[0]);
+        newQuery+= ' ' + part;
+      } else {
+          newQuery += ' *' + part +'*';
+          openQuery.push(part);
       }
     });
-    return filters;
+    return {filters, newQuery, openQuery};
   }
 
 }

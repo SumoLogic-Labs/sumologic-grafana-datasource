@@ -67,6 +67,9 @@ export default class SumoLogicMetricsQueryCtrl extends QueryCtrl {
       };
 
       this.makeList = (information) => {
+          if (information.falseReturn) {
+              return;
+          }
           this.target.html = "<ul>";
           information.suggestions.every((suggestion, index) => {
               if (index>11) {

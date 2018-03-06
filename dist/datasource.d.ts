@@ -24,5 +24,9 @@ export default class SumoLogicMetricsDatasource {
     calculateInterval(interval: any): number;
     changeQuantization(): void;
     callCatalogBrowser(query: any): any;
-    parseQuery(query: any): any[];
+    parseQuery(query: any): {
+        filters: any[];
+        newQuery: string;
+        openQuery: any[];
+    };
 }

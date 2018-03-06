@@ -81,7 +81,7 @@ input:checked + .slider:before {
     background: #141414;
     opacity: .75;
     display: none;
-    max-height: 300px;
+    max-height: 400px;
     position:absolute;
     width:100%;
     overflow-y:auto;
