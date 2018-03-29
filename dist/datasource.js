@@ -213,7 +213,6 @@ System.register(['lodash', 'moment'], function(exports_1) {
                             if (response.status === 'error') {
                                 throw response.error;
                             }
-                            var target = targets[i];
                             result = self.transformMetricData(targets, response.data.response);
                         }
                         // Return the results.
@@ -285,7 +284,6 @@ System.register(['lodash', 'moment'], function(exports_1) {
                             console.log("sumo-logic-metrics-datasource - Datasource.transformMetricData - error: " +
                                 JSON.stringify(response));
                             errors.push(response.message);
-                            target.error = response.message;
                         }
                     }
                     if (errors.length > 0) {
