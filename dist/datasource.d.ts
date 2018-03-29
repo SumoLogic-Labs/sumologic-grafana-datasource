@@ -5,7 +5,8 @@ export default class SumoLogicMetricsDatasource {
     private templateSrv;
     private $q;
     url: string;
-    basicAuth: boolean;
+    basicAuth: any;
+    withCredentials: any;
     start: number;
     end: number;
     error: string;

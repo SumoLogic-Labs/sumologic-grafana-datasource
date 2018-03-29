@@ -377,8 +377,8 @@ export default class SumoLogicMetricsDatasource {
     if (this.basicAuth || this.withCredentials) {
       options.withCredentials = true;
     }
-    if (self.basicAuth) {
-      options.headers.Authorization = self.basicAuth;
+    if (this.basicAuth) {
+      options.headers.Authorization = this.basicAuth;
     }
 
     return this.backendSrv.datasourceRequest(options).then(result => {

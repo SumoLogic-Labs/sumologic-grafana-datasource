@@ -34,6 +34,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     this.$q = $q;
                     this.url = instanceSettings.url;
                     this.basicAuth = instanceSettings.basicAuth;
+                    this.withCredentials = instanceSettings.withCredentials;
                     console.log("sumo-logic-metrics-datasource - Datasource created.");
                 }
                 // Main API.
@@ -322,12 +323,16 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         url: this.url + url,
                         method: method,
                         data: data,
-                        withCredentials: this.basicAuth,
                         headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": this.basicAuth,
+                            "Content-Type": "application/json"
                         }
                     };
+                    if (this.basicAuth || this.withCredentials) {
+                        options.withCredentials = true;
+                    }
+                    if (this.basicAuth) {
+                        options.headers.Authorization = this.basicAuth;
+                    }
                     return this.backendSrv.datasourceRequest(options).then(function (result) {
                         return result;
                     }, function (err) {
