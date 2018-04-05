@@ -24,7 +24,8 @@ const durationSplitRegexp = /(\d+)(ms|s|m|h|d|w|M|y)/;
 export default class SumoLogicMetricsDatasource {
 
   url: string;
-  basicAuth: boolean;
+  basicAuth: any;
+  withCredentials: any;
   start: number;
   end: number;
   error: string;
@@ -34,6 +35,7 @@ export default class SumoLogicMetricsDatasource {
   constructor(instanceSettings, private backendSrv, private templateSrv, private $q) {
     this.url = instanceSettings.url;
     this.basicAuth = instanceSettings.basicAuth;
+    this.withCredentials = instanceSettings.withCredentials;
     console.log("sumo-logic-metrics-datasource - Datasource created.");
   }
 
@@ -367,12 +369,18 @@ export default class SumoLogicMetricsDatasource {
       url: this.url + url,
       method: method,
       data: data,
-      withCredentials: this.basicAuth,
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": this.basicAuth,
+        "Content-Type": "application/json"
       }
     };
+
+    if (this.basicAuth || this.withCredentials) {
+      options.withCredentials = true;
+    }
+    if (this.basicAuth) {
+      options.headers.Authorization = this.basicAuth;
+    }
+
     return this.backendSrv.datasourceRequest(options).then(result => {
       return result;
     }, function (err) {

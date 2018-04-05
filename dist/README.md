@@ -1,4 +1,4 @@
-**Note** Information for plugin developers are [at the end of this document](#plugin-development).
+**Note** Information for plugin developers is [at the end of this document](#plugin-development).
 
 This page describes the sumologic-metrics-grafana-datasource plugin, a datasource plugin for Grafana that can deliver metrics from your Sumo deployment to Grafana. After installing and configuring the plugin, you can query and visualize metrics from Sumo in the Grafana user interface. You initiate a query from the Grafana UI, the search runs on Sumo, and results are returned to Grafana.
 
@@ -22,11 +22,13 @@ This beta version of sumologic-metrics-grafana-datasource contains most planned 
 
 # Grafana version support
 
-The plugin has been tested with Grafana v4.4.3 and v4.5.2.
+The plugin has been tested with Grafana v4.5.2, v4.6.2, and v4.6.3.
 
-This branch supports Grafana v4.5.x.
+The master branch attempts to track Grafana development as much as possible.
 
-A version that works with Grafana v4.4.x is available at https://github.com/SumoLogic/sumo-logic-metrics-datasource/tree/v4.4.x.
+**This is the master branch.**
+
+For specific version families, please have a look at the accordingly named branches.
 
 # Install the plugin
 
@@ -77,7 +79,7 @@ Where `path_to_plugins`  is the path to the plugins folder in your Grafana envir
 
 # Query metrics in Grafana
 
-You can query your Sumo metrics using the same query syntax you use in the the Sumo UI. For more information, see [Metrics Queries](https://help.sumologic.com/Metrics/Working-with-Metrics/Metrics-Queries) in Sumo help.
+You can query your Sumo metrics using the same query syntax you use in the Sumo UI. For more information, see [Metrics Queries](https://help.sumologic.com/Metrics/Working-with-Metrics/Metrics-Queries) in Sumo help.
 
 
 
@@ -131,7 +133,7 @@ Click the **+NEW** button.
 
 ![new-button](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/new-button.png)
 
-There are multiple template types. The one that is most customizable with Sumo is the **Query** tempate.  
+There are multiple template types. The one that is most customizable with Sumo is the **Query** template.  
 
 ![templatetypes](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/template-types.png)
 
