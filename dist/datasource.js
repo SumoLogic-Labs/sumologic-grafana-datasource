@@ -83,7 +83,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     var key = split[1];
                     // The query to constrain the result - a metrics selector.
                     var metricsSelector = split[2];
-                    // PLEASE NOTE THAT THIS IS USING AN UNOFFICIAL APU AND IN
+                    // PLEASE NOTE THAT THIS IS USING AN UNOFFICIAL API AND IN
                     // GENERAL EXPERIMENTAL - BUT IT IS BETTER THAN NOTHING AND
                     // IT DOES IN FACT WORK. WE WILL UPDATE TEMPLATE VARIABLE
                     // QUERY FUNCTIONALITY ONCE AN OFFICIAL PUBLIC API IS OUT.
@@ -93,74 +93,21 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     // more efficient way to get the value for a key than the
                     // method used in getAvailableMetaTags() which might return
                     // a lot of duplicated data.
-                    //
-                    // Given key '_sourceCategory' and metrics selector
-                    // '_contentType=HostMetrics metric=CPU_LoadAvg_1Min' this
-                    // will ask the autocomplete endpoint for all values for
-                    // key '_sourceCategory' by constructing the following
-                    // autocomplete query:
-                    //
-                    //  _contentType=HostMetrics metric=CPU_LoadAvg_1Min _sourceCategory=
-                    //
-                    // We also need to tell the autocomplete endpopint the
-                    // position of the "cursor", so it notes from where in the
-                    // query it should find completitions from. The result will
-                    // look something like this:
-                    //
-                    // {
-                    //   "queryId": 0,
-                    //   "query": "_contentType=HostMetrics metric=CPU_LoadAvg_1Min _sourceCategory=",
-                    //   "pos": 65,
-                    //   "queryStartTime": 0,
-                    //   "queryEndTime": 0,
-                    //   "suggestions": [
-                    //   {
-                    //     "sectionName": "Values",
-                    //     "highlighted": null,
-                    //     "items": [
-                    //       {
-                    //         "display": "alert",
-                    //         ...
-                    //       },
-                    //       {
-                    //         "display": "analytics",
-                    //         ...
-                    //         }
-                    //       },
-                    //       {
-                    //         "display": "attack",
-                    //         ...
-                    //       },
-                    //       ...
-                    //     ]
-                    // ],
-                    // ...
-                    // }
-                    // Create the final query with the key appended.
-                    var finalQuery = metricsSelector + " " + key + "=";
-                    var position = finalQuery.length;
                     var startTime = this.start || 0;
-                    var endTime = this.end || 0;
-                    var url = '/api/v1/metrics/suggest/autocomplete';
-                    var data = {
-                        queryId: 1,
-                        query: finalQuery,
-                        pos: position,
-                        apiVersion: "0.2.0",
-                        queryStartTime: startTime,
-                        queryEndTime: endTime,
-                        requestedSectionsAndCounts: {
-                            values: 1000
-                        }
-                    };
-                    return this._sumoLogicRequest('POST', url, data)
+                    var endTime = this.end || Date.now();
+                    var urlParams = [];
+                    urlParams.push("beginTimestamp=" + startTime);
+                    urlParams.push("endTimestamp=" + endTime);
+                    urlParams.push("filters=" + encodeURIComponent(metricsSelector));
+                    var url = "/api/v1alpha/metadataCatalog/keys/" + encodeURIComponent(key) + "/values?" + urlParams.join("&");
+                    return this._sumoLogicRequest('GET', url, null)
                         .then(function (result) {
-                        if (result.data.suggestions.length < 1) {
+                        if (result.data.data.length < 1) {
                             return [];
                         }
-                        return lodash_1.default.map(result.data.suggestions[0].items, function (suggestion) {
+                        return lodash_1.default.map(result.data.data, function (valueAndCount) {
                             return {
-                                text: suggestion.display,
+                                text: valueAndCount.value,
                             };
                         });
                     });
@@ -319,14 +266,24 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     return this._sumoLogicRequest('POST', url, data);
                 };
                 SumoLogicMetricsDatasource.prototype._sumoLogicRequest = function (method, url, data) {
-                    var options = {
-                        url: this.url + url,
-                        method: method,
-                        data: data,
-                        headers: {
-                            "Content-Type": "application/json"
-                        }
-                    };
+                    var options;
+                    if (method == "GET") {
+                        options = {
+                            url: this.url + url,
+                            method: method,
+                            headers: {}
+                        };
+                    }
+                    else {
+                        options = {
+                            url: this.url + url,
+                            method: method,
+                            data: data,
+                            headers: {
+                                "Content-Type": "application/json"
+                            }
+                        };
+                    }
                     if (this.basicAuth || this.withCredentials) {
                         options.withCredentials = true;
                     }
