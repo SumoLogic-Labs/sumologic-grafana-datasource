@@ -93,8 +93,10 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     // more efficient way to get the value for a key than the
                     // method used in getAvailableMetaTags() which might return
                     // a lot of duplicated data.
-                    var startTime = this.start || 0;
-                    var endTime = this.end || Date.now();
+                    // a hack to get current time range; see: https://github.com/grafana/grafana/issues/1909
+                    var timeRange = window.angular.element('grafana-app').injector().get('timeSrv').timeRange();
+                    var startTime = this.start || new Date(timeRange.from).getTime();
+                    var endTime = this.end || new Date(timeRange.to).getTime();
                     var urlParams = [];
                     urlParams.push("beginTimestamp=" + startTime);
                     urlParams.push("endTimestamp=" + endTime);

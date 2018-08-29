@@ -107,8 +107,11 @@ export default class SumoLogicMetricsDatasource {
     // method used in getAvailableMetaTags() which might return
     // a lot of duplicated data.
 
-    let startTime = this.start || 0;
-    let endTime = this.end || Date.now();
+    // a hack to get current time range; see: https://github.com/grafana/grafana/issues/1909
+    let timeRange = (<any>window).angular.element('grafana-app').injector().get('timeSrv').timeRange();
+
+    let startTime = this.start || new Date(timeRange.from).getTime();
+    let endTime = this.end || new Date(timeRange.to).getTime();
 
     let urlParams = [];
     urlParams.push("beginTimestamp=" + startTime);
