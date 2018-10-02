@@ -203,11 +203,11 @@ export default class SumoLogicMetricsDatasource {
 
     // Figure out the desired quantization.
     let desiredQuantization = this.calculateInterval(options.interval);
-
-    const targets = options.targets;
+    
+    const targets = options.targets
     const queries = [];
     _.each(options.targets, target => {
-      if (!target.expr || target.hide) {
+      if (!target.expr || !target.refId) {
         return;
       }
 
@@ -216,7 +216,7 @@ export default class SumoLogicMetricsDatasource {
 
       let query: any = {};
       query.expr = this.templateSrv.replace(target.expr, options.scopedVars);
-      query.requestId = options.panelId + target.refId;
+      query.requestId = target.refId;
       queries.push(query);
     });
 
@@ -280,52 +280,70 @@ export default class SumoLogicMetricsDatasource {
   // query() into the format Grafana expects.
   transformMetricData(targets, responses) {
 
+    // responses don't seem to be ordered the same way as targets (alphabetically)
+    responses.sort(function(a, b) {
+      var refIdA = a.rowId.toUpperCase(); // ignore upper and lowercase
+      var refIdB = b.rowId.toUpperCase(); // ignore upper and lowercase
+      if (refIdA < refIdB) {
+        return -1;
+      }
+      if (refIdA > refIdB) {
+        return 1;
+      }
+    
+      // names must be equal
+      return 0;
+    });
+
     let seriesList = [];
     let errors = [];
 
     for (let i = 0; i < responses.length; i++) {
-      let response = responses[i];
-      let target = targets[i];
+      // Don't show targets that are hidden
+      if (!targets[i].hide) {
+        let response = responses[i];
+        let target = targets[i];
 
-      if (!response.messageType) {
-        for (let j = 0; j < response.results.length; j++) {
-          let result = response.results[j];
+        if (!response.messageType) {
+          for (let j = 0; j < response.results.length; j++) {
+            let result = response.results[j];
 
-          // Synthesize the "target" - the "metric name" basically.
-          let target = "";
-          let dimensions = result.metric.dimensions;
-          let firstAdded = false;
-          for (let k = 0; k < dimensions.length; k++) {
-            let dimension = dimensions[k];
-            if (dimension.legend === true) {
-              if (firstAdded) {
-                target += ",";
+            // Synthesize the "target" - the "metric name" basically.
+            let target = "";
+            let dimensions = result.metric.dimensions;
+            let firstAdded = false;
+            for (let k = 0; k < dimensions.length; k++) {
+              let dimension = dimensions[k];
+              if (dimension.legend === true) {
+                if (firstAdded) {
+                  target += ",";
+                }
+                target += dimension.key + "=" + dimension.value;
+                firstAdded = true;
               }
-              target += dimension.key + "=" + dimension.value;
-              firstAdded = true;
             }
-          }
 
-          // Create Grafana-suitable datapoints.
-          let values = result.datapoints.value;
-          let timestamps = result.datapoints.timestamp;
-          let length = Math.min(values.length, timestamps.length);
-          let datapoints = [];
-          for (let l = 0; l < length; l++) {
-            let value = values[l];
-            let valueParsed = parseFloat(value);
-            let timestamp = timestamps[l];
-            let timestampParsed = parseFloat(timestamp);
-            datapoints.push([valueParsed, timestampParsed]);
-          }
+            // Create Grafana-suitable datapoints.
+            let values = result.datapoints.value;
+            let timestamps = result.datapoints.timestamp;
+            let length = Math.min(values.length, timestamps.length);
+            let datapoints = [];
+            for (let l = 0; l < length; l++) {
+              let value = values[l];
+              let valueParsed = parseFloat(value);
+              let timestamp = timestamps[l];
+              let timestampParsed = parseFloat(timestamp);
+              datapoints.push([valueParsed, timestampParsed]);
+            }
 
-          // Add the series.
-          seriesList.push({target: target, datapoints: datapoints});
+            // Add the series.
+            seriesList.push({target: target, datapoints: datapoints});
+          }
+        } else {
+          console.log("sumo-logic-metrics-datasource - Datasource.transformMetricData - error: " +
+            JSON.stringify(response));
+          errors.push(response.message);
         }
-      } else {
-        console.log("sumo-logic-metrics-datasource - Datasource.transformMetricData - error: " +
-          JSON.stringify(response));
-        errors.push(response.message);
       }
     }
 
