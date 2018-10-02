@@ -186,14 +186,14 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     var targets = options.targets;
                     var queries = [];
                     lodash_1.default.each(options.targets, function (target) {
-                        if (!target.expr || target.hide) {
+                        if (!target.expr || !target.refId) {
                             return;
                         }
                         // Reset previous errors, if any.
                         target.error = null;
                         var query = {};
                         query.expr = _this.templateSrv.replace(target.expr, options.scopedVars);
-                        query.requestId = options.panelId + target.refId;
+                        query.requestId = target.refId;
                         queries.push(query);
                     });
                     // If there's no valid targets, return the empty result to
@@ -243,48 +243,64 @@ System.register(['lodash', 'moment'], function(exports_1) {
                 // Transform results from the Sumo Logic Metrics API called in
                 // query() into the format Grafana expects.
                 SumoLogicMetricsDatasource.prototype.transformMetricData = function (targets, responses) {
+                    // responses don't seem to be ordered the same way as targets (alphabetically)
+                    responses.sort(function (a, b) {
+                        var refIdA = a.rowId.toUpperCase(); // ignore upper and lowercase
+                        var refIdB = b.rowId.toUpperCase(); // ignore upper and lowercase
+                        if (refIdA < refIdB) {
+                            return -1;
+                        }
+                        if (refIdA > refIdB) {
+                            return 1;
+                        }
+                        // names must be equal
+                        return 0;
+                    });
                     var seriesList = [];
                     var errors = [];
                     for (var i = 0; i < responses.length; i++) {
-                        var response = responses[i];
-                        var target = targets[i];
-                        if (!response.messageType) {
-                            for (var j = 0; j < response.results.length; j++) {
-                                var result = response.results[j];
-                                // Synthesize the "target" - the "metric name" basically.
-                                var target_1 = "";
-                                var dimensions = result.metric.dimensions;
-                                var firstAdded = false;
-                                for (var k = 0; k < dimensions.length; k++) {
-                                    var dimension = dimensions[k];
-                                    if (dimension.legend === true) {
-                                        if (firstAdded) {
-                                            target_1 += ",";
+                        // Don't show targets that are hidden
+                        if (!targets[i].hide) {
+                            var response = responses[i];
+                            var target = targets[i];
+                            if (!response.messageType) {
+                                for (var j = 0; j < response.results.length; j++) {
+                                    var result = response.results[j];
+                                    // Synthesize the "target" - the "metric name" basically.
+                                    var target_1 = "";
+                                    var dimensions = result.metric.dimensions;
+                                    var firstAdded = false;
+                                    for (var k = 0; k < dimensions.length; k++) {
+                                        var dimension = dimensions[k];
+                                        if (dimension.legend === true) {
+                                            if (firstAdded) {
+                                                target_1 += ",";
+                                            }
+                                            target_1 += dimension.key + "=" + dimension.value;
+                                            firstAdded = true;
                                         }
-                                        target_1 += dimension.key + "=" + dimension.value;
-                                        firstAdded = true;
                                     }
+                                    // Create Grafana-suitable datapoints.
+                                    var values = result.datapoints.value;
+                                    var timestamps = result.datapoints.timestamp;
+                                    var length_1 = Math.min(values.length, timestamps.length);
+                                    var datapoints = [];
+                                    for (var l = 0; l < length_1; l++) {
+                                        var value = values[l];
+                                        var valueParsed = parseFloat(value);
+                                        var timestamp = timestamps[l];
+                                        var timestampParsed = parseFloat(timestamp);
+                                        datapoints.push([valueParsed, timestampParsed]);
+                                    }
+                                    // Add the series.
+                                    seriesList.push({ target: target_1, datapoints: datapoints });
                                 }
-                                // Create Grafana-suitable datapoints.
-                                var values = result.datapoints.value;
-                                var timestamps = result.datapoints.timestamp;
-                                var length_1 = Math.min(values.length, timestamps.length);
-                                var datapoints = [];
-                                for (var l = 0; l < length_1; l++) {
-                                    var value = values[l];
-                                    var valueParsed = parseFloat(value);
-                                    var timestamp = timestamps[l];
-                                    var timestampParsed = parseFloat(timestamp);
-                                    datapoints.push([valueParsed, timestampParsed]);
-                                }
-                                // Add the series.
-                                seriesList.push({ target: target_1, datapoints: datapoints });
                             }
-                        }
-                        else {
-                            console.log("sumo-logic-metrics-datasource - Datasource.transformMetricData - error: " +
-                                JSON.stringify(response));
-                            errors.push(response.message);
+                            else {
+                                console.log("sumo-logic-metrics-datasource - Datasource.transformMetricData - error: " +
+                                    JSON.stringify(response));
+                                errors.push(response.message);
+                            }
                         }
                     }
                     if (errors.length > 0) {
