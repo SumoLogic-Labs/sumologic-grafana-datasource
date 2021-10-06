@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 import moment from 'moment';
-import * as dateMath from 'app/core/utils/datemath';
+import { createEpochTimeRangeBoundary } from './time_range_boundary.util';
 
 const durationSplitRegexp = /(\d+)(ms|s|m|h|d|w|M|y)/;
 
@@ -44,7 +44,7 @@ export default class SumoLogicMetricsDatasource {
   // Called by Grafana to, well, test a datasource. Invoked
   // during Save & Test on a Datasource editor screen.
   testDatasource() {
-    return this.metricFindQuery('metrics|*').then(() => {
+    return this.metricFindQuery('values|metric|*').then(() => {
       return {status: 'success', message: 'Data source is working', title: 'Success'};
     });
   }
@@ -84,7 +84,7 @@ export default class SumoLogicMetricsDatasource {
     }
 
     // Unknown query type - error.
-    return this.$q.reject("Unknown metric find query: " + query);
+    return this.$q.reject(new Error("Unknown metric find query: " + query));
   }
 
   getValuesFromAutocomplete(interpolatedQuery) {
@@ -96,86 +96,26 @@ export default class SumoLogicMetricsDatasource {
     // The query to constrain the result - a metrics selector.
     let metricsSelector = split[2];
 
-    // PLEASE NOTE THAT THIS IS USING AN UNOFFICIAL APU AND IN
-    // GENERAL EXPERIMENTAL - BUT IT IS BETTER THAN NOTHING AND
-    // IT DOES IN FACT WORK. WE WILL UPDATE TEMPLATE VARIABLE
-    // QUERY FUNCTIONALITY ONCE AN OFFICIAL PUBLIC API IS OUT.
-    //
-    // Returns the values for the key specified as the parameter
-    // given the metrics selector given in query. This is a much
-    // more efficient way to get the value for a key than the
-    // method used in getAvailableMetaTags() which might return
-    // a lot of duplicated data.
-    //
-    // Given key '_sourceCategory' and metrics selector
-    // '_contentType=HostMetrics metric=CPU_LoadAvg_1Min' this
-    // will ask the autocomplete endpoint for all values for
-    // key '_sourceCategory' by constructing the following
-    // autocomplete query:
-    //
-    //  _contentType=HostMetrics metric=CPU_LoadAvg_1Min _sourceCategory=
-    //
-    // We also need to tell the autocomplete endpopint the
-    // position of the "cursor", so it notes from where in the
-    // query it should find completitions from. The result will
-    // look something like this:
-    //
-    // {
-    //   "queryId": 0,
-    //   "query": "_contentType=HostMetrics metric=CPU_LoadAvg_1Min _sourceCategory=",
-    //   "pos": 65,
-    //   "queryStartTime": 0,
-    //   "queryEndTime": 0,
-    //   "suggestions": [
-    //   {
-    //     "sectionName": "Values",
-    //     "highlighted": null,
-    //     "items": [
-    //       {
-    //         "display": "alert",
-    //         ...
-    //       },
-    //       {
-    //         "display": "analytics",
-    //         ...
-    //         }
-    //       },
-    //       {
-    //         "display": "attack",
-    //         ...
-    //       },
-    //       ...
-    //     ]
-    // ],
-    // ...
-    // }
-
-    // Create the final query with the key appended.
-    let finalQuery = metricsSelector + " " + key + "=";
-    let position = finalQuery.length;
-
     let startTime = this.start || 0;
     let endTime = this.end || 0;
-    let url = '/api/v1/metrics/suggest/autocomplete';
+    // THIS IS INTERNAL API WHICH IS NOT YET PUBLISHED
+    // Currently (2021-10-06) we need to enable it per customer, so it should be raised to sales team
+    let url = `/api/v1/metadataCatalog/dimensions/${encodeURIComponent(key)}/values/search`;
     let data = {
-      queryId: 1,
-      query: finalQuery,
-      pos: position,
-      apiVersion: "0.2.0",
-      queryStartTime: startTime,
-      queryEndTime: endTime,
-      requestedSectionsAndCounts: {
-        values: 1000
-      }
+      selector: [metricsSelector],
+      term: '',
+      from: createEpochTimeRangeBoundary(startTime),
+      to: createEpochTimeRangeBoundary(endTime),
+      size: 1000
     };
     return this._sumoLogicRequest('POST', url, data)
-      .then(result => {
-        if (result.data.suggestions.length < 1) {
+      .then(({ data: { data }}) => {
+        if (data.length < 1) {
           return [];
         }
-        return _.map(result.data.suggestions[0].items, suggestion => {
+        return _.map(data, ({ value }) => {
           return {
-            text: suggestion.display,
+            text: value,
           };
         });
       });
@@ -258,22 +198,9 @@ export default class SumoLogicMetricsDatasource {
 
   // Called from SumoLogicMetricsQueryCtrl.
   performSuggestQuery(query) {
-    let url = '/api/v1/metrics/suggest/autocomplete';
-    let data = {
-      query: query,
-      pos: query.length,
-      queryStartTime: this.start,
-      queryEndTime: this.end
-    };
-    return this._sumoLogicRequest('POST', url, data).then(result => {
-      let suggestionsList = [];
-      _.each(result.data.suggestions, suggestion => {
-        _.each(suggestion.items, item => {
-          suggestionsList.push(item.replacement.text);
-        });
-      });
-      return suggestionsList;
-    });
+    // Before it used /api/v1/metrics/suggest/autocomplete
+    // which has been disabled, so as we don't have alternative implementation we would just return empty array
+    return this.$q.resolve([]);
   }
 
   // Transform results from the Sumo Logic Metrics API called in

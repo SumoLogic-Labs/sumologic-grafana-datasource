@@ -1,6 +1,6 @@
 ///<reference path="../node_modules/grafana-sdk-mocks/app/headers/common.d.ts" />
-System.register(['lodash', 'moment'], function(exports_1) {
-    var lodash_1, moment_1;
+System.register(['lodash', 'moment', './time_range_boundary.util'], function(exports_1) {
+    var lodash_1, moment_1, time_range_boundary_util_1;
     var durationSplitRegexp, SumoLogicMetricsDatasource;
     return {
         setters:[
@@ -9,6 +9,9 @@ System.register(['lodash', 'moment'], function(exports_1) {
             },
             function (moment_1_1) {
                 moment_1 = moment_1_1;
+            },
+            function (time_range_boundary_util_1_1) {
+                time_range_boundary_util_1 = time_range_boundary_util_1_1;
             }],
         execute: function() {
             durationSplitRegexp = /(\d+)(ms|s|m|h|d|w|M|y)/;
@@ -41,7 +44,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                 // Called by Grafana to, well, test a datasource. Invoked
                 // during Save & Test on a Datasource editor screen.
                 SumoLogicMetricsDatasource.prototype.testDatasource = function () {
-                    return this.metricFindQuery('metrics|*').then(function () {
+                    return this.metricFindQuery('values|metric|*').then(function () {
                         return { status: 'success', message: 'Data source is working', title: 'Success' };
                     });
                 };
@@ -75,7 +78,7 @@ System.register(['lodash', 'moment'], function(exports_1) {
                         return this.getValuesFromAutocomplete(interpolated);
                     }
                     // Unknown query type - error.
-                    return this.$q.reject("Unknown metric find query: " + query);
+                    return this.$q.reject(new Error("Unknown metric find query: " + query));
                 };
                 SumoLogicMetricsDatasource.prototype.getValuesFromAutocomplete = function (interpolatedQuery) {
                     var split = interpolatedQuery.split("|");
@@ -83,84 +86,28 @@ System.register(['lodash', 'moment'], function(exports_1) {
                     var key = split[1];
                     // The query to constrain the result - a metrics selector.
                     var metricsSelector = split[2];
-                    // PLEASE NOTE THAT THIS IS USING AN UNOFFICIAL APU AND IN
-                    // GENERAL EXPERIMENTAL - BUT IT IS BETTER THAN NOTHING AND
-                    // IT DOES IN FACT WORK. WE WILL UPDATE TEMPLATE VARIABLE
-                    // QUERY FUNCTIONALITY ONCE AN OFFICIAL PUBLIC API IS OUT.
-                    //
-                    // Returns the values for the key specified as the parameter
-                    // given the metrics selector given in query. This is a much
-                    // more efficient way to get the value for a key than the
-                    // method used in getAvailableMetaTags() which might return
-                    // a lot of duplicated data.
-                    //
-                    // Given key '_sourceCategory' and metrics selector
-                    // '_contentType=HostMetrics metric=CPU_LoadAvg_1Min' this
-                    // will ask the autocomplete endpoint for all values for
-                    // key '_sourceCategory' by constructing the following
-                    // autocomplete query:
-                    //
-                    //  _contentType=HostMetrics metric=CPU_LoadAvg_1Min _sourceCategory=
-                    //
-                    // We also need to tell the autocomplete endpopint the
-                    // position of the "cursor", so it notes from where in the
-                    // query it should find completitions from. The result will
-                    // look something like this:
-                    //
-                    // {
-                    //   "queryId": 0,
-                    //   "query": "_contentType=HostMetrics metric=CPU_LoadAvg_1Min _sourceCategory=",
-                    //   "pos": 65,
-                    //   "queryStartTime": 0,
-                    //   "queryEndTime": 0,
-                    //   "suggestions": [
-                    //   {
-                    //     "sectionName": "Values",
-                    //     "highlighted": null,
-                    //     "items": [
-                    //       {
-                    //         "display": "alert",
-                    //         ...
-                    //       },
-                    //       {
-                    //         "display": "analytics",
-                    //         ...
-                    //         }
-                    //       },
-                    //       {
-                    //         "display": "attack",
-                    //         ...
-                    //       },
-                    //       ...
-                    //     ]
-                    // ],
-                    // ...
-                    // }
-                    // Create the final query with the key appended.
-                    var finalQuery = metricsSelector + " " + key + "=";
-                    var position = finalQuery.length;
                     var startTime = this.start || 0;
                     var endTime = this.end || 0;
-                    var url = '/api/v1/metrics/suggest/autocomplete';
+                    // THIS IS INTERNAL API WHICH IS NOT YET PUBLISHED
+                    // Currently (2021-10-06) we need to enable it per customer, so it should be raised to sales team
+                    var url = "/api/v1/metadataCatalog/dimensions/" + encodeURIComponent(key) + "/values/search";
                     var data = {
-                        queryId: 1,
-                        query: finalQuery,
-                        pos: position,
-                        apiVersion: "0.2.0",
-                        queryStartTime: startTime,
-                        queryEndTime: endTime,
-                        requestedSectionsAndCounts: {
-                            values: 1000
-                        }
+                        selector: [metricsSelector],
+                        term: '',
+                        from: time_range_boundary_util_1.createEpochTimeRangeBoundary(startTime),
+                        to: time_range_boundary_util_1.createEpochTimeRangeBoundary(endTime),
+                        size: 1000
                     };
                     return this._sumoLogicRequest('POST', url, data)
-                        .then(function (result) {
-                        if (result.data.suggestions.length < 1) {
+                        .then(function (_a) {
+                        var data = _a.data.data;
+                        if (data.length < 1) {
                             return [];
                         }
-                        return lodash_1.default.map(result.data.suggestions[0].items, function (suggestion) {
+                        return lodash_1.default.map(data, function (_a) {
+                            var value = _a.value;
                             return {
-                                text: suggestion.display,
+                                text: value,
                             };
                         });
                     });
@@ -223,22 +170,9 @@ System.register(['lodash', 'moment'], function(exports_1) {
                 // Helper methods.
                 // Called from SumoLogicMetricsQueryCtrl.
                 SumoLogicMetricsDatasource.prototype.performSuggestQuery = function (query) {
-                    var url = '/api/v1/metrics/suggest/autocomplete';
-                    var data = {
-                        query: query,
-                        pos: query.length,
-                        queryStartTime: this.start,
-                        queryEndTime: this.end
-                    };
-                    return this._sumoLogicRequest('POST', url, data).then(function (result) {
-                        var suggestionsList = [];
-                        lodash_1.default.each(result.data.suggestions, function (suggestion) {
-                            lodash_1.default.each(suggestion.items, function (item) {
-                                suggestionsList.push(item.replacement.text);
-                            });
-                        });
-                        return suggestionsList;
-                    });
+                    // Before it used /api/v1/metrics/suggest/autocomplete
+                    // which has been disabled, so as we don't have alternative implementation we would just return empty array
+                    return this.$q.resolve([]);
                 };
                 // Transform results from the Sumo Logic Metrics API called in
                 // query() into the format Grafana expects.

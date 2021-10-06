@@ -1,14 +1,15 @@
 import {describe, beforeEach, it, sinon, expect} from './lib/common';
-import {SumologicQueryCtrl} from '../src/query_ctrl';
+import SumoLogicMetricsQueryCtrl from '../src/query_ctrl';
 import TemplateSrvStub from './lib/template_srv_stub';
 import Q from 'q';
-import moment from 'moment';
 
 describe('SumologicQueryCtrl', function() {
   let queryCtrl;
 
   beforeEach(function() {
-    queryCtrl = new SumologicQueryCtrl({}, {}, new TemplateSrvStub());
+    queryCtrl = new SumoLogicMetricsQueryCtrl({
+      $on: () => {}
+    }, {}, new TemplateSrvStub());
     queryCtrl.datasource = {$q: Q};
   });
 
