@@ -10,54 +10,14 @@ describe('SumologicDatasource', function() {
     templateSrv: new TemplateSrvStub()
   };
 
-  let sumologicQueryResponse = [
-    {
-      name: "CPU_LoadAvg_1min",
-      dimensions: [
-        {
-          key: "_collectorId",
-          value: "000000000F"
-        },
-        {
-          key: "metric",
-          value: "CPU_LoadAvg_1min_a"
-        }
-      ],
-      metaTags: [
-        {
-          key: "_source",
-          value: "HostMetrics1"
-        },
-        {
-          key: "_sourceName",
-          value: "HostMetrics1"
-        }
-      ]
-    },
-    {
-      name: "CPU_LoadAvg_1min",
-      dimensions: [
-        {
-          key: "_collectorId",
-          value: "000000000E"
-        },
-        {
-          key: "metric",
-          value: "CPU_LoadAvg_1min_b"
-        }
-      ],
-      metaTags: [
-        {
-          key: "_source",
-          value: "HostMetrics2"
-        },
-        {
-          key: "_sourceName",
-          value: "HostMetrics2"
-        }
-      ]
-    }
-  ];
+  let sumologicQueryResponse = {
+    data: [
+      {
+        value: "CPU_LoadAvg_1min",
+        count: 1
+      },
+    ]
+  };
 
   beforeEach(function() {
     ctx.$q = Q;
@@ -117,36 +77,16 @@ describe('SumologicDatasource', function() {
 
   describe('When trying to get data from Sumologic ', function () {
     describe('return correct data', function () {
-      const response = {
-        results: sumologicQueryResponse,
-        status: 200,
-        statusText: 'OK'
-      };
-
       beforeEach(function () {
         ctx.backendSrv.datasourceRequest = function (options) {
-          return ctx.$q.when({data: response, status: 200});
+          return ctx.$q.when({data: sumologicQueryResponse, status: 200});
         };
       });
-      it('when asked for  metrics', function () {
+      it('when asked for autocomplete', function () {
         let testQuery = 'metric| test';
-        return ctx.ds.getAvailableMetrics(testQuery).then(function (results) {
+        return ctx.ds.getValuesFromAutocomplete(testQuery).then(function (results) {
           let _sourceNameMetadataList = _.map(results, result => result.text);
           expect(_sourceNameMetadataList).to.eql(['CPU_LoadAvg_1min']);
-        });
-      });
-      it('when asked for dimensions', function () {
-        let testQuery = 'dimensions| _collectorId| test';
-        return ctx.ds.getAvailableDimensions(testQuery).then(function (results) {
-          let dimensions = _.map(results, result => result.text);
-          expect(dimensions).to.eql(['000000000F', '000000000E']);
-        });
-      });
-      it('when asked for metadata', function () {
-        let testQuery = 'metadata| _sourceName| test';
-        return ctx.ds.getAvailableMetaTags(testQuery).then(function (results) {
-          let _sourceNameMetadataList = _.map(results, result => result.text);
-          expect(_sourceNameMetadataList).to.eql(['HostMetrics1', 'HostMetrics2']);
         });
       });
     });

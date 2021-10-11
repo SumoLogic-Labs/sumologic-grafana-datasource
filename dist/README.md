@@ -179,3 +179,7 @@ The layout of this repository is based on https://github.com/grafana/typescript-
 4. While developing, run `grunt watch` to see errors and warnings when saving files.
 
 Make all changes need to be made in the `src` directory. Once you are happy with the changes, remove the previous versions of the plugin from Grafana's plugin directory, then copy the `dist` folder (making sure to run grunt first!) to the plugin directory.
+
+### TLS 1.2 Requirement
+
+Sumo Logic only accepts connections from clients using TLS version 1.2 or greater. To utilize the content of this repo, ensure that it's running in an execution environment that is configured to use TLS 1.2 or greater.
