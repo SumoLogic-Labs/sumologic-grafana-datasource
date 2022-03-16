@@ -22,7 +22,7 @@ This beta version of sumologic-metrics-grafana-datasource contains most planned 
 
 # Grafana version support
 
-The plugin has been tested with Grafana v4.5.2, v4.6.2, and v4.6.3.
+The plugin supports Grafana starting from the v4.
 
 The master branch attempts to track Grafana development as much as possible.
 
@@ -53,29 +53,33 @@ Where `path_to_plugins`  is the path to the plugins folder in your Grafana envir
 
 # Configure the plugin
 
-1. In Sumo, generate an Access ID and Key. For instructions, see [Access Keys](https://help.sumologic.com/Manage/Security/Access-Keys). Save the ID and Key, as you will enter them later in this procedure. 
+1. In Sumo, generate an Access ID and Key. For instructions, see [Access Keys](https://help.sumologic.com/Manage/Security/Access-Keys). Save the ID and Key, as you will enter them later in this procedure. If you would like to use Browser Data Source in Grafana, then please ensure that you have added your Grafana domain in the Allowlisted CORS Domains list. 
 
 2. On the Grafana Home Dashboard, click **Add data source**.
 ![datasource](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/add-datasource.png)
 
 3. Enter a name for the plugin in the **Name** field.  
 
-4. Deselect the **Default** checkbox, unless you want to make the Sumo Logic datasource your default datasource type. 
+4. Deselect the **Default** checkbox/switch, unless you want to make the Sumo Logic datasource your default datasource type. 
 
-5. Select **Sumo Logic Metrics** from the **Type** dropdown.
+5. You may change **Access** to **Browser**, if you want to load data directly from browser. For this you would need proper entry in Allowlisted CORS Domains which you filled in step 1.
 
-6. In the **Http settings** section:
-   - In the **URL** field, enter the API endpoint for your deployment. To determine the API endpoint, see [Sumo Logic Endpoints and Firewall Security](https://help.sumologic.com/APIs/General-API-Information/Sumo-Logic-Endpoints-and-Firewall-Security) in Sumo help.
-   - In the **Access** field, leave “proxy” selected. 
+6. In the **URL** field, enter the API endpoint for your deployment. To determine the API endpoint, see [Sumo Logic Endpoints and Firewall Security](https://help.sumologic.com/APIs/General-API-Information/Sumo-Logic-Endpoints-and-Firewall-Security) in Sumo help.
 
-7. In the **Http Auth** section, select the **Basic Auth** checkbox. The **Basic Auth Details** section appears.
-![dash-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/basic-auth.png)
+7. In the **Auth** section, select the **Basic auth** checkbox. The **Basic Auth Details** section appears.
+    ![dash-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/basic-auth.png)
 
 8. In the **Basic Auth Details** section:
-   - In the **User** field, enter the Access ID you generated in step 1.
-   - In the **Password** field, enter the Access Key you generated in step 1.
+    - In the **User** field, enter the Access ID you generated in step 1.
+    - In the **Password** field, enter the Access Key you generated in step 1.
 
-9. Click **Add** to save the new data source. 
+9. Select **Sumo Logic Metrics** from the **Type** dropdown. This not the case for the newer version of Grafana, as there no such field.
+
+10. If you are using **old Grafana version**, there few more points need to be taken into account:
+    1. Select **Sumo Logic Metrics** from the **Type** dropdown.
+    2. In the **Access** field, leave "proxy" selected.
+
+11. Click **Add** to save the new data source. 
 
 # Query metrics in Grafana
 
