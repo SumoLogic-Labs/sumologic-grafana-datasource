@@ -64,7 +64,7 @@ Where `path_to_plugins`  is the path to the plugins folder in your Grafana envir
 
 5. You may change **Access** to **Browser**, if you want to load data directly from browser. For this you would need proper entry in Allowlisted CORS Domains which you filled in step 1.
 
-6. In the **URL** field, enter the API endpoint for your deployment. To determine the API endpoint, see [Sumo Logic Endpoints and Firewall Security](https://help.sumologic.com/APIs/General-API-Information/Sumo-Logic-Endpoints-and-Firewall-Security) in Sumo help.
+6. In the **URL** field, enter the API endpoint for your deployment, without `/api/` suffix (for example instead of `https://api.sumologic.com/api/`, please use `https://api.sumologic.com`). To determine the API endpoint, see [Sumo Logic Endpoints and Firewall Security](https://help.sumologic.com/APIs/General-API-Information/Sumo-Logic-Endpoints-and-Firewall-Security) in Sumo help.
 
 7. In the **Auth** section, select the **Basic auth** checkbox. The **Basic Auth Details** section appears.
     ![dash-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/basic-auth.png)
