@@ -1,345 +1,192 @@
-///<reference path="../node_modules/grafana-sdk-mocks/app/headers/common.d.ts" />
+import {
+  DataQueryRequest,
+  DataQueryResponse,
+  DataSourceApi,
+  DataSourceInstanceSettings,
+  MutableDataFrame,
+  FieldType, TimeRange,
+} from '@grafana/data';
+import { getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 
-import _ from 'lodash';
-import moment from 'moment';
-import { createEpochTimeRangeBoundary } from './time_range_boundary.util';
+import { lastValueFrom } from 'rxjs';
 
-const durationSplitRegexp = /(\d+)(ms|s|m|h|d|w|M|y)/;
+import { calculateInterval, createEpochTimeRangeBoundary } from './utils/time.utils';
+import { SumoApiDimensionValuesResponse } from './types/metadataCatalogApi.types';
+import { mapKeyedErrorMessage } from './utils/keyedErrors.utils';
+import { MetricsQuery, SumoApiMetricsResponse, SumoQuery } from './types/metricsApi.types';
+import { dimensionsToLabelSuffix } from './utils/labels.utils';
+import { interpolateVariable } from './utils/interpolation.utils';
 
-// Things we still need to do:
-// - Fully understand the code; it looks like there are still leftovers
-//   from the Prometheus data source plugin in this code.
-// - Decide on the final "DSL" for template variable queries in
-//   metricFindQuery() and see if the autocomplete endpoint can do this
-//   more efficiently.
-// - start/end really shouldn't be instance fields on the data source
-//   object but it is not clear how else to have a time range handy
-//   for performSuggestQuery.
-// - quantizationDefined is wonky and shouldn't be an instance field
-//   either.
-// - How to support alerting?
-// - How to support annotations?
+export class DataSource extends DataSourceApi<SumoQuery> {
+  private readonly baseUrl: string;
+  private readonly basicAuth: string;
 
-/** @ngInject */
-export default class SumoLogicMetricsDatasource {
-
-  url: string;
-  basicAuth: any;
-  withCredentials: any;
-  start: number;
-  end: number;
-  error: string;
-  quantizationDefined: boolean;
-
-  /** @ngInject */
-  constructor(instanceSettings, private backendSrv, private templateSrv, private $q) {
-    this.url = instanceSettings.url;
-    this.basicAuth = instanceSettings.basicAuth;
-    this.withCredentials = instanceSettings.withCredentials;
-    console.log("sumo-logic-metrics-datasource - Datasource created.");
+  constructor(instanceSettings: DataSourceInstanceSettings) {
+    super(instanceSettings);
+    this.baseUrl = instanceSettings.url as string;
+    this.basicAuth = instanceSettings.basicAuth as string;
   }
 
-  // Main API.
+  // perform metrics query by Grafana
+  async query(options: DataQueryRequest<SumoQuery>): Promise<DataQueryResponse> {
+    const { range, maxDataPoints, targets, scopedVars, interval } = options;
+    const templateSrv = getTemplateSrv();
 
-  // Called by Grafana to, well, test a datasource. Invoked
-  // during Save & Test on a Datasource editor screen.
-  testDatasource() {
-    return this.metricFindQuery('values|metric|*').then(() => {
-      return {status: 'success', message: 'Data source is working', title: 'Success'};
-    });
-  }
-
-  // Called by Grafana to find values for template variables.
-  metricFindQuery(query) {
-
-    // Bail out immediately if the caller didn't specify a query.
-    if (!query) {
-      return this.$q.when([]);
-    }
-
-    // With the help of templateSrv, we are going to first of all figure
-    // out the current values of all template variables.
-    let templateVariables = {};
-    _.forEach(_.clone(this.templateSrv.variables), variable => {
-      let name = variable.name;
-      let value = variable.current.value;
-
-      // Prepare the an object for this template variable in the map
-      // following the same structure as options.scopedVars from
-      // this.query() so we can then in the next step simply pass
-      // on the map to templateSrv.replace().
-      templateVariables[name] = {'selelected': true, 'text': value, 'value': value};
-    });
-
-    // Resolve template variables in the query to their current value.
-    let interpolated;
-    try {
-      interpolated = this.templateSrv.replace(query, templateVariables);
-    } catch (err) {
-      return this.$q.reject(err);
-    }
-
-    if (interpolated.startsWith("values|")) {
-      return this.getValuesFromAutocomplete(interpolated);
-    }
-
-    // Unknown query type - error.
-    return this.$q.reject(new Error("Unknown metric find query: " + query));
-  }
-
-  getValuesFromAutocomplete(interpolatedQuery) {
-    let split = interpolatedQuery.split("|");
-
-    // The metatag whose values we want to enumerate.
-    let key = split[1];
-
-    // The query to constrain the result - a metrics selector.
-    let metricsSelector = split[2];
-
-    let startTime = this.start || 0;
-    let endTime = this.end || 0;
-    // THIS IS INTERNAL API WHICH IS NOT YET PUBLISHED
-    // Currently (2021-10-06) we need to enable it per customer, so it should be raised to sales team
-    let url = `/api/v1/metadataCatalog/dimensions/${encodeURIComponent(key)}/values/search`;
-    let data = {
-      selector: [metricsSelector],
-      term: '',
-      from: createEpochTimeRangeBoundary(startTime),
-      to: createEpochTimeRangeBoundary(endTime),
-      size: 1000
-    };
-    return this._sumoLogicRequest('POST', url, data)
-      .then(({ data: { data }}) => {
-        if (data.length < 1) {
-          return [];
-        }
-        return _.map(data, ({ value }) => {
-          return {
-            text: value,
-          };
-        });
-      });
-  }
-
-  // Called by Grafana to execute a metrics query.
-  query(options) {
-
-    let self = this;
-
-    // Get the start and end time for the query. Remember the values so
-    // we can reuse them during performSuggestQuery, where we will also
-    // need a time range.
-    this.start = options.range.from.valueOf();
-    this.end = options.range.to.valueOf();
-
-    // This gives us the upper limit of data points to be returned
-    // by the Sumo backend and seems to be based on the width in
-    // pixels of the panel.
-    let maxDataPoints = options.maxDataPoints;
+    const startTime = range!.from.valueOf();
+    const endTime = range!.to.valueOf();
 
     // Empirically, it seems that we get better looking graphs
     // when requesting some fraction of the indicated width...
-    let requestedDataPoints = Math.round(maxDataPoints / 6);
+    let requestedDataPoints = Math.round(maxDataPoints! / 6);
 
     // Figure out the desired quantization.
-    let desiredQuantization = this.calculateInterval(options.interval);
+    const desiredQuantizationInSec = calculateInterval(interval);
 
-    const targets = options.targets;
-    const queries = [];
-    _.each(options.targets, target => {
-      if (!target.expr || target.hide) {
-        return;
-      }
+    const queries: MetricsQuery[] = targets
+      .filter(({ queryText }) => Boolean(queryText))
+      .map(({ refId, queryText }) => ({
+        query: templateSrv.replace(queryText!, scopedVars, interpolateVariable),
+        rowId: refId,
+      }));
 
-      // Reset previous errors, if any.
-      target.error = null;
-
-      let query: any = {};
-      query.expr = this.templateSrv.replace(target.expr, options.scopedVars);
-      query.requestId = options.panelId + target.refId;
-      queries.push(query);
-    });
-
-    // If there's no valid targets, return the empty result to
-    // save a round trip.
-    if (_.isEmpty(queries)) {
-      let d = this.$q.defer();
-      d.resolve({data: []});
-      return d.promise;
+    if (!queries.length) {
+      return {
+        data: []
+      };
     }
 
-    // Set up the promises.
-    let queriesPromise = [
-      this.doMetricsQuery(
-        queries,
-        this.start,
-        this.end,
+    const { data: { response, keyedErrors, error, errorKey, errorMessage } } = await this.fetchMetrics(queries, {
+      startTime,
+      endTime,
+      requestedDataPoints,
+      maxDataPoints: maxDataPoints!,
+      desiredQuantizationInSec,
+    });
+
+    if (error && !response.length) {
+      if (errorMessage) {
+        throw new Error(errorMessage);
+      }
+
+      if (errorKey) {
+        throw new Error(`API return error with code "${errorKey}"`);
+      }
+
+      const firstKeyedError = keyedErrors.find((keyedError) => keyedError.values?.type === 'error');
+
+      throw new Error(mapKeyedErrorMessage(firstKeyedError));
+    }
+
+    const data = response.flatMap(({ rowId, results }) =>
+      results.map(({ metric, datapoints }) => new MutableDataFrame({
+      name: `${metric.name} ${dimensionsToLabelSuffix(metric.dimensions)}`.trim(),
+      refId: rowId,
+      meta: {
+        notices: keyedErrors.filter(({ values }) => values?.rowId === rowId)
+          .map(keyedError => ({
+            text: mapKeyedErrorMessage(keyedError),
+            severity: keyedError.values?.type ?? 'error',
+          })),
+      },
+      fields: [
+        { name: 'Time', values: datapoints.timestamp, type: FieldType.time},
+        { name: 'Value', values: datapoints.value, type: FieldType.number}
+      ]
+    })));
+
+    return { data };
+  }
+
+  // used to get Query dependent variables by Grafana
+  async metricFindQuery(query: string, { variable: { name }, range }: {
+    range: TimeRange;
+    variable: {
+      name: string;
+      query: string;
+    };
+  }) {
+    const response = await this.getDimensionValues(name, {
+      query,
+      from: range.from.valueOf(),
+      to: range.to.valueOf()
+    });
+
+    return response.data.data.map(({ value }) => ({ text: value }));
+  }
+
+  // used to check if plugin configured properly by Grafana
+  testDatasource() {
+    return this.getDimensionValues('metric', {
+        size: 1,
+        from: Date.now() - 60 * 1000,
+        to: Date.now()
+      })
+      .then(() => ({
+        status: 'success',
+        message: 'Success',
+      }));
+  }
+
+  private getDimensionValues(term: string, { query, from, to, size = 1000 }: {
+    query?: string;
+    from: number;
+    to: number;
+    size?: number;
+  }) {
+    return this.sumoApiRequest<SumoApiDimensionValuesResponse>({
+      url: `/v1/metadataCatalog/dimensions/${encodeURIComponent(term)}/values/search`,
+      data: {
+        selector: query ? [query] : [],
+        term: '',
+        from: createEpochTimeRangeBoundary(from),
+        to: createEpochTimeRangeBoundary(to),
+        size,
+      },
+    });
+  }
+
+  private fetchMetrics(
+    queries: MetricsQuery[],
+    {
+      startTime,
+      endTime,
+      maxDataPoints,
+      requestedDataPoints,
+      desiredQuantizationInSec
+    }: {
+      startTime: number;
+      endTime: number;
+      maxDataPoints: number;
+      requestedDataPoints: number;
+      desiredQuantizationInSec: number;
+    }
+  ) {
+    return this.sumoApiRequest<SumoApiMetricsResponse>({
+      url: '/v1/metrics/annotated/results',
+      data: {
+        query: queries,
+        startTime,
+        endTime,
         maxDataPoints,
         requestedDataPoints,
-        desiredQuantization)];
-
-    // Execute the queries and collect all the results.
-    return this.$q.all(queriesPromise).then(responses => {
-      let result = [];
-      for (let i = 0; i < responses.length; i++) {
-        const response = responses[i];
-        if (response.status === 'error') {
-          throw response.error;
-        }
-        result = self.transformMetricData(targets, response.data.response);
-      }
-
-      // Return the results.
-      return {data: result};
+        desiredQuantizationInSec,
+      },
     });
   }
 
-  // Helper methods.
-
-  // Called from SumoLogicMetricsQueryCtrl.
-  performSuggestQuery(query) {
-    // Before it used /api/v1/metrics/suggest/autocomplete
-    // which has been disabled, so as we don't have alternative implementation we would just return empty array
-    return this.$q.resolve([]);
-  }
-
-  // Transform results from the Sumo Logic Metrics API called in
-  // query() into the format Grafana expects.
-  transformMetricData(targets, responses) {
-
-    let seriesList = [];
-    let errors = [];
-
-    for (let i = 0; i < responses.length; i++) {
-      let response = responses[i];
-      let target = targets[i];
-
-      if (!response.messageType) {
-        for (let j = 0; j < response.results.length; j++) {
-          let result = response.results[j];
-
-          // Synthesize the "target" - the "metric name" basically.
-          let target = "";
-          let dimensions = result.metric.dimensions;
-          let firstAdded = false;
-          for (let k = 0; k < dimensions.length; k++) {
-            let dimension = dimensions[k];
-            if (dimension.legend === true) {
-              if (firstAdded) {
-                target += ",";
-              }
-              target += dimension.key + "=" + dimension.value;
-              firstAdded = true;
-            }
-          }
-
-          // Create Grafana-suitable datapoints.
-          let values = result.datapoints.value;
-          let timestamps = result.datapoints.timestamp;
-          let length = Math.min(values.length, timestamps.length);
-          let datapoints = [];
-          for (let l = 0; l < length; l++) {
-            let value = values[l];
-            let valueParsed = parseFloat(value);
-            let timestamp = timestamps[l];
-            let timestampParsed = parseFloat(timestamp);
-            datapoints.push([valueParsed, timestampParsed]);
-          }
-
-          // Add the series.
-          seriesList.push({target: target, datapoints: datapoints});
-        }
-      } else {
-        console.log("sumo-logic-metrics-datasource - Datasource.transformMetricData - error: " +
-          JSON.stringify(response));
-        errors.push(response.message);
-      }
-    }
-
-    if (errors.length > 0) {
-      throw {message: errors.join("<br>")};
-    }
-
-    return seriesList;
-  }
-
-  doMetricsQuery(queries, start, end, maxDataPoints,
-                 requestedDataPoints, desiredQuantization) {
-    if (start > end) {
-      throw {message: 'Invalid time range'};
-    }
-    let queryList = [];
-    for (let i = 0; i < queries.length; i++) {
-      queryList.push({
-        'query': queries[i].expr,
-        'rowId': queries[i].requestId,
-      });
-    }
-    let url = '/api/v1/metrics/annotated/results';
-    let data = {
-      'query': queryList,
-      'startTime': start,
-      'endTime': end,
-      'maxDataPoints': maxDataPoints,
-      'requestedDataPoints': requestedDataPoints
-    };
-    if (this.quantizationDefined && desiredQuantization) {
-      data['desiredQuantizationInSecs'] = desiredQuantization;
-    }
-    console.log("sumo-logic-metrics-datasource - Datasource.doMetricsQuery: " +
-      JSON.stringify(data));
-    return this._sumoLogicRequest('POST', url, data);
-  }
-
-  _sumoLogicRequest(method, url, data) {
-    let options: any = {
-      url: this.url + url,
-      method: method,
-      data: data,
+  private sumoApiRequest<Response>({ url, method = 'POST', data }: {
+    method?: 'POST' | 'GET';
+    url: string;
+    data?: any;
+  }) {
+    return lastValueFrom(getBackendSrv().fetch<Response>({
+      method,
+      credentials: 'include',
       headers: {
-        "Content-Type": "application/json"
-      }
-    };
-
-    if (this.basicAuth || this.withCredentials) {
-      options.withCredentials = true;
-    }
-    if (this.basicAuth) {
-      options.headers.Authorization = this.basicAuth;
-    }
-
-    return this.backendSrv.datasourceRequest(options).then(result => {
-      return result;
-    }, function (err) {
-      if (err.status !== 0 || err.status >= 300) {
-        if (err.data && err.data.error) {
-          throw {
-            message: 'Sumo Logic Error: ' + err.data.error,
-            data: err.data,
-            config: err.config
-          };
-        } else {
-          throw {
-            message: 'Network Error: ' + err.statusText + '(' + err.status + ')',
-            data: err.data,
-            config: err.config
-          };
-        }
-      }
-    });
+        Authorization: this.basicAuth,
+      },
+      url: this.baseUrl + url,
+      data,
+    }));
   }
-
-  calculateInterval(interval) {
-    let m = interval.match(durationSplitRegexp);
-    let dur = moment.duration(parseInt(m[1]), m[2]);
-    let sec = dur.asSeconds();
-    if (sec < 1) {
-      sec = 1;
-    }
-    return Math.ceil(sec);
-  };
-
-  changeQuantization() {
-    this.quantizationDefined = true;
-  };
 }
