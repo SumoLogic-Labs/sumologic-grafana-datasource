@@ -2,9 +2,9 @@ import React from 'react';
 import { Button, QueryField } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { DataSource } from '../datasource';
-import { MyDataSourceOptions, MyQuery } from '../types';
+import { SumoQuery } from '../types/metricsApi.types';
 
-type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
+type Props = QueryEditorProps<DataSource, SumoQuery>;
 
 export function QueryEditor({ query, onChange, onRunQuery }: Props) {
   const onQueryTextChange = (changedQueryText: string) => {

@@ -1,11 +1,8 @@
 import React from 'react';
 import { Alert, DataSourceHttpSettings } from '@grafana/ui';
 import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
-import { MyDataSourceOptions } from '../types';
 
-interface Props extends DataSourcePluginOptionsEditorProps<MyDataSourceOptions> {}
-
-export function ConfigEditor({ onOptionsChange, options }: Props) {
+export function ConfigEditor({ onOptionsChange, options }: DataSourcePluginOptionsEditorProps) {
   return (
     <div className="gf-form-group">
       <p>URL should be taken from{' '}
@@ -18,7 +15,11 @@ export function ConfigEditor({ onOptionsChange, options }: Props) {
         </a>.
       </p>
       <p>
-        You also need to get <a href="https://help.sumologic.com/Manage/Security/Access-Keys">Access Key</a>.
+        You also need to get <a
+          target="_blank"
+          rel="noopener noreferrer"
+          href="https://help.sumologic.com/Manage/Security/Access-Keys"
+        >Access Key</a>.
         {' '}<strong>Access ID</strong> should be used in the <strong>User</strong> field,
         and <strong>Access Key</strong> should be passed to the <strong>Password</strong> field.
       </p>
