@@ -1,16 +1,9 @@
-import SumoLogicMetricsDatasource from './datasource';
-import SumoLogicMetricsQueryCtrl from './query_ctrl';
+import { DataSourcePlugin } from '@grafana/data';
+import { DataSource } from './datasource';
+import { ConfigEditor } from './components/ConfigEditor';
+import { QueryEditor } from './components/QueryEditor';
+import { SumoQuery } from './types/metricsApi.types';
 
-class SumoLogicMetricsConfigCtrl {
-  static templateUrl = 'partials/config.html';
-}
-
-// class SumoLogicMetricsAnnotationsQueryCtrl {
-//   static templateUrl = 'partials/annotations.editor.html';
-// }
-
-export {
-  SumoLogicMetricsDatasource as Datasource,
-  SumoLogicMetricsConfigCtrl as ConfigCtrl,
-  SumoLogicMetricsQueryCtrl as QueryCtrl,
-}
+export const plugin = new DataSourcePlugin<DataSource, SumoQuery>(DataSource)
+  .setConfigEditor(ConfigEditor)
+  .setQueryEditor(QueryEditor);

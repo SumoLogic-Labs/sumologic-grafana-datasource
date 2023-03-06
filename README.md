@@ -1,189 +1,105 @@
-**Note** Information for plugin developers is [at the end of this document](#plugin-development).
+# Grafana data source plugin template
 
-This page describes the sumologic-metrics-grafana-datasource plugin, a datasource plugin for Grafana that can deliver metrics from your Sumo deployment to Grafana. After installing and configuring the plugin, you can query and visualize metrics from Sumo in the Grafana user interface. You initiate a query from the Grafana UI, the search runs on Sumo, and results are returned to Grafana.
+This template is a starting point for building a Data Source Plugin for Grafana.
 
-The Grafana backend will proxy all requests from the browser, and send them on to the data source.
+## What are Grafana data source plugins?
 
-This beta version of sumologic-metrics-grafana-datasource contains most planned features, but is not yet complete.
+Grafana supports a wide range of data sources, including Prometheus, MySQL, and even Datadog. There’s a good chance you can already visualize metrics from the systems you have set up. In some cases, though, you already have an in-house metrics solution that you’d like to add to your Grafana dashboards. Grafana Data Source Plugins enables integrating such solutions with Grafana.
 
+## Getting started
 
-- [Grafana version support](#grafana-version-support)
-- [Install the plugin](#install-the-plugin)
-  * [Install on Mac](#install-on-mac)
-  * [Install on Ubuntu Linux](#install-on-ubuntu-linux)
-- [Configure the plugin](#configure-the-plugin)
-- [Query metrics in Grafana](#query-metrics-in-grafana)
-- [Create a dashboard](#create-a-dashboard)
-- [Templating](#templating)
-  * [Values](#values)
-- [Plugin development](#plugin-development)
 
-**Note** This plugin is community-supported. For support, add a request in the issues tab.
+### Frontend
 
-# Grafana version support
+1. Install dependencies
 
-The plugin supports Grafana starting from the v4.
+   ```bash
+   yarn install
+   ```
 
-The master branch attempts to track Grafana development as much as possible.
+2. Build plugin in development mode and run in watch mode
 
-**This is the master branch.**
+   ```bash
+   yarn dev
+   ```
 
-For specific version families, please have a look at the accordingly named branches.
+3. Build plugin in production mode
 
-# Install the plugin
+   ```bash
+   yarn build
+   ```
 
-The GA version of sumologic-metrics-grafana-datasource will be available on https://grafana.com/plugins. At that point, the plugin will be installable using the Grafana command-line interface. 
+4. Run the tests (using Jest)
 
-To install the beta version, copy the `dist` directory of this repository to the plugin directory of your Grafana installation, then restart Grafana. Environment-specific instructions follow.
+   ```bash
+   # Runs the tests and watches for changes, requires git init first
+   yarn test
+   
+   # Exists after running all the tests
+   yarn test:ci
+   ```
 
+5. Spin up a Grafana instance and run the plugin inside it (using Docker)
 
-## Install on Mac
+   ```bash
+   yarn server
+   ```
 
-To install the plugin on a Mac, with Grafana installed using Homebrew:
+6. Run the linter
 
-`cp -r dist /usr/local/var/lib/grafana/plugins/sumologic-metrics-grafana-datasource && brew services restart grafana`
+   ```bash
+   yarn lint
+   
+   # or
 
-## Install on Ubuntu Linux
+   yarn lint:fix
+   ```
 
-To install the plugin on Ubuntu Linux:
 
-`sudo cp -r dist /path_to_plugins/sumologic-metrics-grafana-datasource && sudo /bin/systemctl restart grafana-server`
+# Distributing your plugin
 
-Where `path_to_plugins`  is the path to the plugins folder in your Grafana environment. The plugins folder is typically `/var/lib/grafana/`, but it may be different in your environment. 
+When distributing a Grafana plugin either within the community or privately the plugin must be signed so the Grafana application can verify its authenticity. This can be done with the `@grafana/sign-plugin` package.
 
-# Configure the plugin
+_Note: It's not necessary to sign a plugin during development. The docker development environment that is scaffolded with `@grafana/create-plugin` caters for running the plugin without a signature._
 
-1. In Sumo, generate an Access ID and Key. For instructions, see [Access Keys](https://help.sumologic.com/Manage/Security/Access-Keys). Save the ID and Key, as you will enter them later in this procedure. If you would like to use Browser Data Source in Grafana, then please ensure that you have added your Grafana domain in the Allowlisted CORS Domains list. 
+## Initial steps
 
-2. On the Grafana Home Dashboard, click **Add data source**.
-![datasource](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/add-datasource.png)
+Before signing a plugin please read the Grafana [plugin publishing and signing criteria](https://grafana.com/docs/grafana/latest/developers/plugins/publishing-and-signing-criteria/) documentation carefully.
 
-3. Enter a name for the plugin in the **Name** field.  
+`@grafana/create-plugin` has added the necessary commands and workflows to make signing and distributing a plugin via the grafana plugins catalog as straightforward as possible.
 
-4. Deselect the **Default** checkbox/switch, unless you want to make the Sumo Logic datasource your default datasource type. 
+Before signing a plugin for the first time please consult the Grafana [plugin signature levels](https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/#plugin-signature-levels) documentation to understand the differences between the types of signature level.
 
-5. You may change **Access** to **Browser**, if you want to load data directly from browser. For this you would need proper entry in Allowlisted CORS Domains which you filled in step 1.
+1. Create a [Grafana Cloud account](https://grafana.com/signup).
+2. Make sure that the first part of the plugin ID matches the slug of your Grafana Cloud account.
+   - _You can find the plugin ID in the plugin.json file inside your plugin directory. For example, if your account slug is `acmecorp`, you need to prefix the plugin ID with `acmecorp-`._
+3. Create a Grafana Cloud API key with the `PluginPublisher` role.
+4. Keep a record of this API key as it will be required for signing a plugin
 
-6. In the **URL** field, enter the API endpoint for your deployment, without `/api/` suffix (for example instead of `https://api.sumologic.com/api/`, please use `https://api.sumologic.com`). To determine the API endpoint, see [Sumo Logic Endpoints and Firewall Security](https://help.sumologic.com/APIs/General-API-Information/Sumo-Logic-Endpoints-and-Firewall-Security) in Sumo help.
+## Signing a plugin
 
-7. In the **Auth** section, select the **Basic auth** checkbox. The **Basic Auth Details** section appears.
-    ![dash-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/basic-auth.png)
+### Using Github actions release workflow
 
-8. In the **Basic Auth Details** section:
-    - In the **User** field, enter the Access ID you generated in step 1.
-    - In the **Password** field, enter the Access Key you generated in step 1.
+If the plugin is using the github actions supplied with `@grafana/create-plugin` signing a plugin is included out of the box. The [release workflow](./.github/workflows/release.yml) can prepare everything to make submitting your plugin to Grafana as easy as possible. Before being able to sign the plugin however a secret needs adding to the Github repository.
 
-9. Select **Sumo Logic Metrics** from the **Type** dropdown. This not the case for the newer version of Grafana, as there no such field.
+1. Please navigate to "settings > secrets > actions" within your repo to create secrets.
+2. Click "New repository secret"
+3. Name the secret "GRAFANA_API_KEY"
+4. Paste your Grafana Cloud API key in the Secret field
+5. Click "Add secret"
 
-10. If you are using **old Grafana version**, there few more points need to be taken into account:
-    1. Select **Sumo Logic Metrics** from the **Type** dropdown.
-    2. In the **Access** field, leave "proxy" selected.
+#### Push a version tag
 
-11. Click **Add** to save the new data source. 
+To trigger the workflow we need to push a version tag to github. This can be achieved with the following steps:
 
-# Query metrics in Grafana
+1. Run `npm version <major|minor|patch>`
+2. Run `git push origin main --follow-tags`
 
-You can query your Sumo metrics using the same query syntax you use in the Sumo UI. For more information, see [Metrics Queries](https://help.sumologic.com/Metrics/Working-with-Metrics/Metrics-Queries) in Sumo help.
 
+## Learn more
 
-
-
-# Create a dashboard
-
-To create a new dashboard, click **New Dashboard**.
-
-![dash-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/new-dash-icon.png)
-
-Click the **Graph** icon.
-
-![graph-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/graph-icon.png)
-
-Click **Panel Title**.
-
-![panel-title](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/panel-title.png)
-
-Click **Edit** in the menu that pops up.
-
-![panel-title](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/edit-button.png)
-
-
-A metrics menu opens. Select the name of the data source that you created.
-
-![data-source](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/select-data-source.png)
-
-Enter the query that you want to run.
-
-![queryx](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/add-query.png)
-
-
-Write the query. To see the results, hit Tab to de-focus the query text box, or click outside of the query text box.
-
-![query](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/results.png)
-
-
-Close the edit box and click **Save**.
-
-![save](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/save.png)
-
-
-# Templating
-
-To use templating, click the **Settings** icon and select **Templating**.
-
-![templating](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/settings-templating.png)
-
-
-Click the **+NEW** button.
-
-![new-button](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/new-button.png)
-
-There are multiple template types. The one that is most customizable with Sumo is the **Query** template.  
-
-![templatetypes](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/template-types.png)
-
-
-Sumo currently supports one special type of query for generating template autocomplete values from timeseries metadata.
-
-* Values
-
-## Values
-
-Every metric time series in Sumo Logic has a set of associated key-value pairs. This is based on the [Metrics 2.0](http://metrics20.org/) concept. Common keys include `_contentType`, `metric`, `_sourceCategory`, `_sourceHost`, `_rawName`, and so on. For dashboard templating, we often want to create a template variable to specify a value for a given key. In order to create a list of all the values for a key, we can use the special query type "values". Consider this example:
-
-`values|_sourceCategory|_contentType=HostMetrics`
-
-This will return all the value for dimension `_sourceCategory` given dimension `_contentType` has value `HostMetrics`. In other words, this will return all the source categories that report host metrics via the Sumo Logic host metrics collector source. Note that it is possible to use the value of another template variable in the query. Assuming we have defined a template variable `$sourceCategory" with the above query, we can then create a template variable that will only have the hosts in the given source category by defining another template variable:
-
-`values|_sourceHost|_contentType=HostMetrics _sourceCategory=$sourceCategory`
-
-Format: 
-
-`values | <dimensionName> | <Query to run>`
-
-where: 
-
-* \<dimensionName\> is the key that you want from the query result. For example, if the query narrows it down to five possible keys, you can specify which key to use to autocomplete the parameter value.
-
-* \<Query to run\> is the query that you want to use to narrow down the autocomplete. 
-
-![preview](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/preview-values.png)
-
-If you save the dashboard, you can see the values being autocompleted which were shown in the preview.
-
-![autocomplete](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/cluster.png)
-
-
-# Plugin development
-The layout of this repository is based on https://github.com/grafana/typescript-template-datasource.
-
-1. Run `npm install` to fetch all the dependencies.
-2. If you don't already have Grunt, install it with: 
-`sudo npm install -g grunt-cli`. 
-3. Run grunt to build the plugin into `dist`.
-4. While developing, run `grunt watch` to see errors and warnings when saving files.
-
-Make all changes need to be made in the `src` directory. Once you are happy with the changes, remove the previous versions of the plugin from Grafana's plugin directory, then copy the `dist` folder (making sure to run grunt first!) to the plugin directory.
-
-### TLS 1.2 Requirement
-
-Sumo Logic only accepts connections from clients using TLS version 1.2 or greater. To utilize the content of this repo, ensure that it's running in an execution environment that is configured to use TLS 1.2 or greater.
+Below you can find source code for existing app plugins and other related documentation.
+
+- [Basic data source plugin example](https://github.com/grafana/grafana-plugin-examples/tree/master/examples/datasource-basic#readme)
+- [Plugin.json documentation](https://grafana.com/docs/grafana/latest/developers/plugins/metadata/)
+- [How to sign a plugin?](https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/)
