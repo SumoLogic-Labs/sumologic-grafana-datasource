@@ -30,7 +30,7 @@ export function ConfigEditor({ onOptionsChange, options }: DataSourcePluginOptio
         </Alert>
       )}
       <DataSourceHttpSettings
-        defaultUrl="https://api.sumologic.com/"
+        defaultUrl="https://api.sumologic.com/api/"
         dataSourceConfig={options}
         showAccessOptions={true}
         onChange={(newOptions) => {

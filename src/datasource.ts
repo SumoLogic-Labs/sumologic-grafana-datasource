@@ -122,6 +122,15 @@ export class DataSource extends DataSourceApi<SumoQuery> {
         from: Date.now() - 60 * 1000,
         to: Date.now()
       })
+      .catch(err => {
+        if (err.status === 404) {
+          if (!this.baseUrl.endsWith('/api/')) {
+            return Promise.reject(new Error('API returns 404. Please ensure that provided URL contain full path.'));
+          }
+        }
+
+        return Promise.reject(err);
+      })
       .then(() => ({
         status: 'success',
         message: 'Success',
@@ -143,7 +152,14 @@ export class DataSource extends DataSourceApi<SumoQuery> {
         to: createEpochTimeRangeBoundary(to),
         size,
       },
-    });
+    })
+      .catch(err => {
+        if (Array.isArray(err.data?.errors)) {
+          return Promise.reject(new Error(err.data?.errors[0].message));
+        }
+
+        return Promise.reject(err);
+      });
   }
 
   private fetchMetrics(
