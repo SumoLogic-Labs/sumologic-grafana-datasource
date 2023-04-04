@@ -1,6 +1,6 @@
 import React from 'react';
 import { Alert, DataSourceHttpSettings } from '@grafana/ui';
-import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
+import { DataSourceJsonData, DataSourcePluginOptionsEditorProps } from '@grafana/data';
 
 export function ConfigEditor({ onOptionsChange, options }: DataSourcePluginOptionsEditorProps) {
   return (
@@ -34,7 +34,7 @@ export function ConfigEditor({ onOptionsChange, options }: DataSourcePluginOptio
         dataSourceConfig={options}
         showAccessOptions={true}
         onChange={(newOptions) => {
-          onOptionsChange({ ...newOptions, jsonData: { url: newOptions.url } } as any);
+          onOptionsChange({ ...newOptions, jsonData: { url: newOptions.url } as DataSourceJsonData });
         }}
       />
     </div>

@@ -338,8 +338,12 @@ describe('placeholder test', () => {
           targets: [],
           scopedVars: {},
         } as unknown as DataQueryRequest<SumoQuery>);
-      } catch (error: any) {
-        expect(error.message).toEqual('API failed');
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          expect(error.message).toEqual('API failed');
+        } else {
+          throw error;
+        }
       }
     });
 

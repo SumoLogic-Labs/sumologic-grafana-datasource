@@ -33,12 +33,16 @@ export class DataSource extends DataSourceApi<SumoQuery> {
     const { range, maxDataPoints, targets, scopedVars, interval } = options;
     const templateSrv = getTemplateSrv();
 
-    const startTime = range!.from.valueOf();
-    const endTime = range!.to.valueOf();
+    if (!range) {
+      throw new Error('No range has been provided');
+    }
+
+    const startTime = range.from.valueOf();
+    const endTime = range.to.valueOf();
 
     // Empirically, it seems that we get better looking graphs
     // when requesting some fraction of the indicated width...
-    let requestedDataPoints = Math.round(maxDataPoints! / 6);
+    const requestedDataPoints = maxDataPoints ? Math.round(maxDataPoints / 6) : 100;
 
     // Figure out the desired quantization.
     const desiredQuantizationInSec = calculateInterval(interval);
@@ -46,7 +50,7 @@ export class DataSource extends DataSourceApi<SumoQuery> {
     const queries: MetricsQuery[] = targets
       .filter(({ queryText }) => Boolean(queryText))
       .map(({ refId, queryText }) => ({
-        query: templateSrv.replace(queryText!, scopedVars, interpolateVariable),
+        query: templateSrv.replace(queryText as string, scopedVars, interpolateVariable),
         rowId: refId,
       }));
 
@@ -60,7 +64,7 @@ export class DataSource extends DataSourceApi<SumoQuery> {
       startTime,
       endTime,
       requestedDataPoints,
-      maxDataPoints: maxDataPoints!,
+      maxDataPoints: maxDataPoints ?? 100,
       desiredQuantizationInSec,
     });
 
@@ -194,7 +198,7 @@ export class DataSource extends DataSourceApi<SumoQuery> {
   private sumoApiRequest<Response>({ url, method = 'POST', data }: {
     method?: 'POST' | 'GET';
     url: string;
-    data?: any;
+    data?: unknown;
   }) {
     return lastValueFrom(getBackendSrv().fetch<Response>({
       method,

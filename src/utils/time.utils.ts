@@ -8,7 +8,11 @@ export function createEpochTimeRangeBoundary(time: number) {
 const durationSplitRegexp = /(\d+)(ms|s|m|h|d|w|M|y)/;
 
 export function calculateInterval(interval: string) {
-  const [, amountStr, unit] = interval.match(durationSplitRegexp)!;
+  const matchResult = interval.match(durationSplitRegexp);
+  if (!matchResult) {
+    throw new Error(`Unsupported "${interval}" interval has been provided`);
+  }
+  const [, amountStr, unit] = matchResult;
   const amount = parseInt(amountStr, 10);
   let durationInSeconds = amount;
   switch (unit) {
