@@ -56,7 +56,7 @@ Where `path_to_plugins`  is the path to the plugins folder in your Grafana envir
 1. In Sumo, generate an Access ID and Key. For instructions, see [Access Keys](https://help.sumologic.com/Manage/Security/Access-Keys). Save the ID and Key, as you will enter them later in this procedure. If you would like to use Browser Data Source in Grafana, then please ensure that you have added your Grafana domain in the Allowlisted CORS Domains list.
 
 2. On the Grafana Home Dashboard, click **Add data source**.
-   ![datasource](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/add-datasource.png)
+   ![datasource](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/add-datasource.png?raw=true)
 
 3. Enter a name for the plugin in the **Name** field.
 
@@ -67,7 +67,7 @@ Where `path_to_plugins`  is the path to the plugins folder in your Grafana envir
 6. In the **URL** field, enter the API endpoint for your deployment, without `/api/` suffix (for example instead of `https://api.sumologic.com/api/`, please use `https://api.sumologic.com`). To determine the API endpoint, see [Sumo Logic Endpoints and Firewall Security](https://help.sumologic.com/APIs/General-API-Information/Sumo-Logic-Endpoints-and-Firewall-Security) in Sumo help.
 
 7. In the **Auth** section, select the **Basic auth** checkbox. The **Basic Auth Details** section appears.
-   ![dash-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/basic-auth.png)
+   ![dash-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/basic-auth.png?raw=true)
 
 8. In the **Basic Auth Details** section:
     - In the **User** field, enter the Access ID you generated in step 1.
@@ -92,54 +92,54 @@ You can query your Sumo metrics using the same query syntax you use in the Sumo 
 
 To create a new dashboard, click **New Dashboard**.
 
-![dash-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/new-dash-icon.png)
+![dash-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/new-dash-icon.png?raw=true)
 
 Click the **Graph** icon.
 
-![graph-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/graph-icon.png)
+![graph-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/graph-icon.png?raw=true)
 
 Click **Panel Title**.
 
-![panel-title](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/panel-title.png)
+![panel-title](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/panel-title.png?raw=true)
 
 Click **Edit** in the menu that pops up.
 
-![panel-title](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/edit-button.png)
+![panel-title](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/edit-button.png?raw=true)
 
 
 A metrics menu opens. Select the name of the data source that you created.
 
-![data-source](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/select-data-source.png)
+![data-source](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/select-data-source.png?raw=true)
 
 Enter the query that you want to run.
 
-![queryx](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/add-query.png)
+![queryx](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/add-query.png?raw=true)
 
 
 Write the query. To see the results, hit Tab to de-focus the query text box, or click outside of the query text box.
 
-![query](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/results.png)
+![query](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/results.png?raw=true)
 
 
 Close the edit box and click **Save**.
 
-![save](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/save.png)
+![save](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/save.png?raw=true)
 
 
 # Templating
 
 To use templating, click the **Settings** icon and select **Templating**.
 
-![templating](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/settings-templating.png)
+![templating](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/settings-templating.png?raw=true)
 
 
 Click the **+NEW** button.
 
-![new-button](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/new-button.png)
+![new-button](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/new-button.png?raw=true)
 
 There are multiple template types. The one that is most customizable with Sumo is the **Query** template.
 
-![templatetypes](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/template-types.png)
+![templatetypes](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/template-types.png?raw=true)
 
 
 Sumo currently supports one special type of query for generating template autocomplete values from timeseries metadata.
@@ -166,11 +166,11 @@ where:
 
 * \<Query to run\> is the query that you want to use to narrow down the autocomplete.
 
-![preview](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/preview-values.png)
+![preview](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/preview-values.png?raw=true)
 
 If you save the dashboard, you can see the values being autocompleted which were shown in the preview.
 
-![autocomplete](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/master/screenshots/cluster.png)
+![autocomplete](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/cluster.png?raw=true)
 
 
 # Plugin development
