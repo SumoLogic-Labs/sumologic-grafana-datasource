@@ -22,7 +22,7 @@ This beta version of sumologic-metrics-grafana-datasource contains most planned 
 
 # Grafana version support
 
-The plugin supports Grafana starting from the v4.
+The plugin supports Grafana starting from the v9.
 
 The master branch attempts to track Grafana development as much as possible.
 
@@ -34,22 +34,12 @@ For specific version families, please have a look at the accordingly named branc
 
 The GA version of sumologic-metrics-grafana-datasource will be available on https://grafana.com/plugins. At that point, the plugin will be installable using the Grafana command-line interface.
 
-To install the beta version, copy the `dist` directory of this repository to the plugin directory of your Grafana installation, then restart Grafana. Environment-specific instructions follow.
+To build the beta version, please run following steps:
 
+1. Run `yarn install` to fetch all the dependencies.
+2. Run `yarn build` in order to run webpack, you are ready to start development
 
-## Install on Mac
-
-To install the plugin on a Mac, with Grafana installed using Homebrew:
-
-`cp -r dist /usr/local/var/lib/grafana/plugins/sumologic-metrics-grafana-datasource && brew services restart grafana`
-
-## Install on Ubuntu Linux
-
-To install the plugin on Ubuntu Linux:
-
-`sudo cp -r dist /path_to_plugins/sumologic-metrics-grafana-datasource && sudo /bin/systemctl restart grafana-server`
-
-Where `path_to_plugins`  is the path to the plugins folder in your Grafana environment. The plugins folder is typically `/var/lib/grafana/`, but it may be different in your environment.
+In order to have local Grafana version, it's recommended to use Docker compose, please just run `docker-compose up`
 
 # Configure the plugin
 
@@ -174,15 +164,10 @@ If you save the dashboard, you can see the values being autocompleted which were
 
 
 # Plugin development
-The layout of this repository is based on https://github.com/grafana/typescript-template-datasource.
 
-1. Run `npm install` to fetch all the dependencies.
-2. If you don't already have Grunt, install it with:
-   `sudo npm install -g grunt-cli`.
-3. Run grunt to build the plugin into `dist`.
-4. While developing, run `grunt watch` to see errors and warnings when saving files.
-
-Make all changes need to be made in the `src` directory. Once you are happy with the changes, remove the previous versions of the plugin from Grafana's plugin directory, then copy the `dist` folder (making sure to run grunt first!) to the plugin directory.
+1. Run `yarn install` to fetch all the dependencies.
+2. Run `docker-compose up` in order to get local grafana setup
+3. Run `yarn dev` in order to run webpack, you are ready to start development
 
 ### TLS 1.2 Requirement
 
