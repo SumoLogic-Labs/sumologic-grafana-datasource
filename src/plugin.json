@@ -17,7 +17,7 @@
     },
     "links": [
       {"name": "Project site", "url": "https://github.com/SumoLogic/sumo-logic-metrics-datasource"},
-      {"name": "Apache License", "url": "https://github.com/SumoLogic/sumo-logic-metrics-datasource/LICENSE"}
+      {"name": "Apache License", "url": "https://github.com/SumoLogic-Labs/sumologic-metrics-grafana-datasource/blob/HEAD/LICENSE"}
     ],
     "screenshots": [],
     "version": "%VERSION%",
