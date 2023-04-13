@@ -6,16 +6,12 @@ The Grafana backend will proxy all requests from the browser, and send them on t
 
 This beta version of sumologic-metrics-grafana-datasource contains most planned features, but is not yet complete.
 
-
 - [Grafana version support](#grafana-version-support)
 - [Install the plugin](#install-the-plugin)
     * [Install on Mac](#install-on-mac)
     * [Install on Ubuntu Linux](#install-on-ubuntu-linux)
 - [Configure the plugin](#configure-the-plugin)
 - [Query metrics in Grafana](#query-metrics-in-grafana)
-- [Create a dashboard](#create-a-dashboard)
-- [Templating](#templating)
-    * [Values](#values)
 - [Plugin development](#plugin-development)
 
 **Note** This plugin is community-supported. For support, add a request in the issues tab.
@@ -75,93 +71,7 @@ In order to have local Grafana version, it's recommended to use Docker compose, 
 
 You can query your Sumo metrics using the same query syntax you use in the Sumo UI. For more information, see [Metrics Queries](https://help.sumologic.com/Metrics/Working-with-Metrics/Metrics-Queries) in Sumo help.
 
-
-
-
-# Create a dashboard
-
-To create a new dashboard, click **New Dashboard**.
-
-![dash-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/new-dash-icon.png?raw=true)
-
-Click the **Graph** icon.
-
-![graph-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/graph-icon.png?raw=true)
-
-Click **Panel Title**.
-
-![panel-title](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/panel-title.png?raw=true)
-
-Click **Edit** in the menu that pops up.
-
-![panel-title](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/edit-button.png?raw=true)
-
-
-A metrics menu opens. Select the name of the data source that you created.
-
-![data-source](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/select-data-source.png?raw=true)
-
-Enter the query that you want to run.
-
-![queryx](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/add-query.png?raw=true)
-
-
-Write the query. To see the results, hit Tab to de-focus the query text box, or click outside of the query text box.
-
-![query](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/results.png?raw=true)
-
-
-Close the edit box and click **Save**.
-
-![save](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/save.png?raw=true)
-
-
-# Templating
-
-To use templating, click the **Settings** icon and select **Templating**.
-
-![templating](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/settings-templating.png?raw=true)
-
-
-Click the **+NEW** button.
-
-![new-button](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/new-button.png?raw=true)
-
-There are multiple template types. The one that is most customizable with Sumo is the **Query** template.
-
-![templatetypes](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/template-types.png?raw=true)
-
-
-Sumo currently supports one special type of query for generating template autocomplete values from timeseries metadata.
-
-* Values
-
-## Values
-
-Every metric time series in Sumo Logic has a set of associated key-value pairs. This is based on the [Metrics 2.0](http://metrics20.org/) concept. Common keys include `_contentType`, `metric`, `_sourceCategory`, `_sourceHost`, `_rawName`, and so on. For dashboard templating, we often want to create a template variable to specify a value for a given key. In order to create a list of all the values for a key, we can use the special query type "values". Consider this example:
-
-`values|_sourceCategory|_contentType=HostMetrics`
-
-This will return all the value for dimension `_sourceCategory` given dimension `_contentType` has value `HostMetrics`. In other words, this will return all the source categories that report host metrics via the Sumo Logic host metrics collector source. Note that it is possible to use the value of another template variable in the query. Assuming we have defined a template variable `$sourceCategory" with the above query, we can then create a template variable that will only have the hosts in the given source category by defining another template variable:
-
-`values|_sourceHost|_contentType=HostMetrics _sourceCategory=$sourceCategory`
-
-Format:
-
-`values | <dimensionName> | <Query to run>`
-
-where:
-
-* \<dimensionName\> is the key that you want from the query result. For example, if the query narrows it down to five possible keys, you can specify which key to use to autocomplete the parameter value.
-
-* \<Query to run\> is the query that you want to use to narrow down the autocomplete.
-
-![preview](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/preview-values.png?raw=true)
-
-If you save the dashboard, you can see the values being autocompleted which were shown in the preview.
-
-![autocomplete](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/cluster.png?raw=true)
-
+This plugin supports [Grafana template variables](https://grafana.com/docs/grafana/latest/dashboards/variables/).
 
 # Plugin development
 
