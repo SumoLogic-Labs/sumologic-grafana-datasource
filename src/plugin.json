@@ -12,8 +12,8 @@
     },
     "keywords": ["sumo logic", "sumologic", "sumo", "logic", "metrics"],
     "logos": {
-      "small": "img/logo.svg",
-      "large": "img/logo.svg"
+      "small": "img/logo.png",
+      "large": "img/logo.png"
     },
     "links": [
       {"name": "Project site", "url": "https://github.com/SumoLogic/sumo-logic-metrics-datasource"},

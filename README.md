@@ -4,8 +4,6 @@ This page describes the sumologic-metrics-grafana-datasource plugin, a datasourc
 
 The Grafana backend will proxy all requests from the browser, and send them on to the data source.
 
-This beta version of sumologic-metrics-grafana-datasource contains most planned features, but is not yet complete.
-
 - [Grafana version support](#grafana-version-support)
 - [Install the plugin](#install-the-plugin)
     * [Install on Mac](#install-on-mac)
@@ -50,7 +48,7 @@ In order to have local Grafana version, it's recommended to use Docker compose, 
 
 5. You may change **Access** to **Browser**, if you want to load data directly from browser. For this you would need proper entry in Allowlisted CORS Domains which you filled in step 1.
 
-6. In the **URL** field, enter the API endpoint for your deployment, without `/api/` suffix (for example instead of `https://api.sumologic.com/api/`, please use `https://api.sumologic.com`). To determine the API endpoint, see [Sumo Logic Endpoints and Firewall Security](https://help.sumologic.com/APIs/General-API-Information/Sumo-Logic-Endpoints-and-Firewall-Security) in Sumo help.
+6. In the **URL** field, enter the API endpoint for your deployment. To determine the API endpoint, see [Sumo Logic Endpoints and Firewall Security](https://help.sumologic.com/APIs/General-API-Information/Sumo-Logic-Endpoints-and-Firewall-Security) in Sumo help.
 
 7. In the **Auth** section, select the **Basic auth** checkbox. The **Basic Auth Details** section appears.
    ![dash-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/basic-auth.png?raw=true)
@@ -59,13 +57,11 @@ In order to have local Grafana version, it's recommended to use Docker compose, 
     - In the **User** field, enter the Access ID you generated in step 1.
     - In the **Password** field, enter the Access Key you generated in step 1.
 
-9. Select **Sumo Logic Metrics** from the **Type** dropdown. This not the case for the newer version of Grafana, as there no such field.
-
-10. If you are using **old Grafana version**, there few more points need to be taken into account:
+9. If you are using **old Grafana version**, there few more points need to be taken into account:
     1. Select **Sumo Logic Metrics** from the **Type** dropdown.
     2. In the **Access** field, leave "proxy" selected.
 
-11. Click **Add** to save the new data source.
+10. Click **Add** to save the new data source.
 
 # Query metrics in Grafana
 
