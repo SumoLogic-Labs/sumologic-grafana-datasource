@@ -57,7 +57,7 @@ In order to have local Grafana version, it's recommended to use Docker compose, 
     - In the **User** field, enter the Access ID you generated in step 1.
     - In the **Password** field, enter the Access Key you generated in step 1.
 
-9. If you are using **old Grafana version**, there few more points need to be taken into account:
+9. If you are using **old Grafana version**, there are few more points need to be taken into account:
     1. Select **Sumo Logic Metrics** from the **Type** dropdown.
     2. In the **Access** field, leave "proxy" selected.
 
