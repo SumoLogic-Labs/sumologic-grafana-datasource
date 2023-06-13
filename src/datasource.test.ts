@@ -383,5 +383,55 @@ describe('placeholder test', () => {
         text: 'API return warning with code "error:code"',
       }]);
     });
+
+    it('should handle metrics warning for multiple queries', async () => {
+      const mockedFetch = getBackendSrv().fetch as jest.Mock;
+      // const queryMockResponse();
+      const mockResponse = queryMockResponse();
+      mockedFetch.mockReturnValue(of({
+        data: {
+          ...mockResponse,
+          error: true,
+          keyedErrors: [{
+            key: 'error:code',
+            values: {
+              type: 'warning',
+              rowId: 'B',
+            },
+          }],
+          response: [
+            mockResponse.response[0],
+            {
+              rowId: 'B',
+              results: [],
+            },
+          ],
+        },
+      }));
+
+      const result = await createDataSource().query({
+        interval: '6h',
+        range: {
+          from: new Date(2022, 7, 1, 13, 30, 0, 0), // in real env Moment instance would be passed
+          to: new Date(2022, 7, 1, 13, 45, 0, 0), // in real env Moment instance would be passed
+        } as unknown as TimeRange,
+        maxDataPoints: 100,
+        targets: [{
+          queryText: 'metric=CPUFrequencyMHz_19',
+          refId: 'A',
+        }, {
+          queryText: '/',
+          refId: 'B',
+        }],
+        scopedVars: {},
+      } as unknown as DataQueryRequest<SumoQuery>);
+      
+      expect(result.data[0].meta.notices).toEqual([]);
+      expect(result.data[1].meta.notices).toEqual([]);
+      expect(result.data[2].meta.notices).toEqual([{
+        severity: 'warning',
+        text: 'Row B: API return warning with code "error:code"',
+      }]);
+    });
   });
 });

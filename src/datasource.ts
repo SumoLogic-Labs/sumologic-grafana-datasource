@@ -60,6 +60,8 @@ export class DataSource extends DataSourceApi<SumoQuery> {
       };
     }
 
+    const hasMultipleQueries = queries.length > 1;
+
     const { data: { response, keyedErrors, error, errorKey, errorMessage } } = await this.fetchMetrics(queries, {
       startTime,
       endTime,
@@ -78,26 +80,37 @@ export class DataSource extends DataSourceApi<SumoQuery> {
       }
 
       const firstKeyedError = keyedErrors.find((keyedError) => keyedError.values?.type === 'error');
+      const firstWarningError = keyedErrors.find((keyedError) => keyedError.values?.type === 'warning');
 
-      throw new Error(mapKeyedErrorMessage(firstKeyedError));
+      throw new Error(mapKeyedErrorMessage(firstKeyedError ?? firstWarningError));
     }
 
-    const data = response.flatMap(({ rowId, results }) =>
-      results.map(({ metric, datapoints }) => new MutableDataFrame({
-      name: `${metric.name} ${dimensionsToLabelSuffix(metric.dimensions)}`.trim(),
-      refId: rowId,
-      meta: {
-        notices: keyedErrors.filter(({ values }) => values?.rowId === rowId)
-          .map(keyedError => ({
-            text: mapKeyedErrorMessage(keyedError),
-            severity: keyedError.values?.type ?? 'error',
-          })),
-      },
-      fields: [
-        { name: 'Time', values: datapoints.timestamp, type: FieldType.time},
-        { name: 'Value', values: datapoints.value, type: FieldType.number}
-      ]
-    })));
+    const data = response.flatMap(({ rowId, results }) => {
+      const responseSpecificErrors = hasMultipleQueries
+        ? keyedErrors.filter(({ values }) => values?.rowId === rowId)
+        : keyedErrors;
+      const notices = responseSpecificErrors
+        .map(keyedError => ({
+          text: mapKeyedErrorMessage(keyedError, hasMultipleQueries ? rowId : undefined),
+          severity: keyedError.values?.type ?? 'error',
+        }));
+      return results.length
+        ? results.map(({ metric, datapoints }) => new MutableDataFrame({
+          name: `${metric.name} ${dimensionsToLabelSuffix(metric.dimensions)}`.trim(),
+          refId: rowId,
+          meta: { notices },
+          fields: [
+            { name: 'Time', values: datapoints.timestamp, type: FieldType.time},
+            { name: 'Value', values: datapoints.value, type: FieldType.number}
+          ]
+        }))
+        : new MutableDataFrame({
+          name: `${rowId}`,
+          refId: rowId,
+          meta: { notices, },
+          fields: []
+        });
+    });
 
     return { data };
   }
