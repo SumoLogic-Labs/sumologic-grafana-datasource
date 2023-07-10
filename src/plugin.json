@@ -1,11 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
   "type": "datasource",
-  "name": "Sumo Logic Metrics",
+  "name": "Sumo Logic",
   "id": "sumologic-metrics-datasource",
   "metrics": true,
   "info": {
-    "description": "Sumo Logic Metrics for Grafana",
+    "description": "Sumo Logic Logs & Metrics for Grafana",
     "author": {
       "name": "Sumo Logic",
       "url": "https://www.sumologic.com"
