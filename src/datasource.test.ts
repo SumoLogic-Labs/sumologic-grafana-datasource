@@ -1,6 +1,6 @@
 import { DataQueryRequest, DataSourceInstanceSettings, TimeRange } from '@grafana/data';
 import { getBackendSrv, getTemplateSrv } from '@grafana/runtime';
-import { of } from 'rxjs';
+import { of ,  firstValueFrom } from 'rxjs';
 
 import { DataSource } from './datasource';
 import { SumoQuery } from './types/metricsApi.types';
@@ -262,21 +262,23 @@ describe('placeholder test', () => {
         data: queryMockResponse(),
       }));
 
-      const result = await createDataSource().query({
-        interval: '6h',
-        range: {
-          from: new Date(2022, 7, 1, 13, 30, 0, 0), // in real env Moment instance would be passed
-          to: new Date(2022, 7, 1, 13, 45, 0, 0), // in real env Moment instance would be passed
-        } as unknown as TimeRange,
-        maxDataPoints: 100,
-        targets: [{
-          queryText: 'metric=CPUFrequencyMHz_19',
-          refId: 'A',
-        }],
-        scopedVars: {
-          test: 'abc'
-        },
-      } as unknown as DataQueryRequest<SumoQuery>);
+      const result = await firstValueFrom(
+        createDataSource().query({
+          interval: '6h',
+          range: {
+            from: new Date(2022, 7, 1, 13, 30, 0, 0), // in real env Moment instance would be passed
+            to: new Date(2022, 7, 1, 13, 45, 0, 0), // in real env Moment instance would be passed
+          } as unknown as TimeRange,
+          maxDataPoints: 100,
+          targets: [{
+            queryText: 'metric=CPUFrequencyMHz_19',
+            refId: 'A',
+          }],
+          scopedVars: {
+            test: 'abc'
+          },
+        } as unknown as DataQueryRequest<SumoQuery>)
+      ) 
 
       expect(mockedFetch).toHaveBeenCalledWith({
         method: 'POST',
@@ -364,19 +366,21 @@ describe('placeholder test', () => {
         },
       }));
 
-      const result = await createDataSource().query({
-        interval: '6h',
-        range: {
-          from: new Date(2022, 7, 1, 13, 30, 0, 0), // in real env Moment instance would be passed
-          to: new Date(2022, 7, 1, 13, 45, 0, 0), // in real env Moment instance would be passed
-        } as unknown as TimeRange,
-        maxDataPoints: 100,
-        targets: [{
-          queryText: 'metric=CPUFrequencyMHz_19',
-          refId: 'A',
-        }],
-        scopedVars: {},
-      } as unknown as DataQueryRequest<SumoQuery>);
+      const result = await firstValueFrom(
+        createDataSource().query({
+          interval: '6h',
+          range: {
+            from: new Date(2022, 7, 1, 13, 30, 0, 0), // in real env Moment instance would be passed
+            to: new Date(2022, 7, 1, 13, 45, 0, 0), // in real env Moment instance would be passed
+          } as unknown as TimeRange,
+          maxDataPoints: 100,
+          targets: [{
+            queryText: 'metric=CPUFrequencyMHz_19',
+            refId: 'A',
+          }],
+          scopedVars: {},
+        } as unknown as DataQueryRequest<SumoQuery>)
+      ) 
 
       expect(result.data[0].meta.notices).toEqual([{
         severity: 'warning',
@@ -409,7 +413,7 @@ describe('placeholder test', () => {
         },
       }));
 
-      const result = await createDataSource().query({
+      const result = await firstValueFrom(createDataSource().query({
         interval: '6h',
         range: {
           from: new Date(2022, 7, 1, 13, 30, 0, 0), // in real env Moment instance would be passed
@@ -424,7 +428,7 @@ describe('placeholder test', () => {
           refId: 'B',
         }],
         scopedVars: {},
-      } as unknown as DataQueryRequest<SumoQuery>);
+      } as unknown as DataQueryRequest<SumoQuery>));
       
       expect(result.data[0].meta.notices).toEqual([]);
       expect(result.data[1].meta.notices).toEqual([]);

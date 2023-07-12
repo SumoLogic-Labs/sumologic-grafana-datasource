@@ -6,4 +6,4 @@ import { SumoQuery } from './types/metricsApi.types';
 
 export const plugin = new DataSourcePlugin<DataSource, SumoQuery>(DataSource)
   .setConfigEditor(ConfigEditor)
-  .setQueryEditor(QueryEditor);
+  .setQueryEditor(QueryEditor)
