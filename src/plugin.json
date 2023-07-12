@@ -4,6 +4,7 @@
   "name": "Sumo Logic",
   "id": "sumologic-metrics-datasource",
   "metrics": true,
+  "logs": true,
   "info": {
     "description": "Sumo Logic Logs & Metrics for Grafana",
     "author": {

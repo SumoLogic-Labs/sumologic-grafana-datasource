@@ -63,7 +63,21 @@ export class DataSource extends DataSourceApi<SumoQuery> {
 
   fetchLogsQuery(options: DataQueryRequest<SumoQuery>) : Observable<DataQueryResponse>{
 
-    const { targets, range } = options;
+    const { targets, range , scopedVars } = options;
+
+    const templateSrv = getTemplateSrv();
+
+    const modifiledQueries : SumoQuery[] = targets
+    .filter(({ queryText }) => Boolean(queryText))
+    .map((query) => ({
+      ...query,
+      queryText: templateSrv.replace(query.queryText as string, scopedVars, interpolateVariable),
+    }));
+
+    if (!modifiledQueries.length) {
+      return of({ data : []})
+    }
+
     const logsQueryObj  = targets.find(query=>query.type === SumoQueryType.Logs) as SumoQuery
 
     const startTime = range.from.valueOf();
