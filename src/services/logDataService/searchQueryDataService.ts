@@ -5,6 +5,9 @@ import { lastValueFrom } from 'rxjs';
 
 import { ISearchAggregateResult, ISearchQueryDataService, ISearchStatus, ISearchCreate, SearchQueryParams } from './types';
 
+
+const SEARCH_JOB_API = '/v1/search/jobs'
+
 export class SearchQueryDataService implements ISearchQueryDataService {
 
   create(
@@ -25,7 +28,7 @@ export class SearchQueryDataService implements ISearchQueryDataService {
       headers: {
         Authorization: basicAuth,
       },
-      url: baseUrl + '/v1/search/jobs',
+      url: baseUrl + SEARCH_JOB_API,
       data,
     })).then(response => response.data);
   }
@@ -37,7 +40,7 @@ export class SearchQueryDataService implements ISearchQueryDataService {
       headers: {
         Authorization: basicAuth,
       },
-      url: baseUrl + '/v1/search/jobs/' + searchQuerySessionId,
+      url: `${baseUrl}${SEARCH_JOB_API}/${searchQuerySessionId}` ,
     })).then(response => response.data)
   }
 
@@ -48,7 +51,7 @@ export class SearchQueryDataService implements ISearchQueryDataService {
       headers: {
         Authorization: basicAuth,
       },
-      url: baseUrl + '/v1/search/jobs/' + searchQuerySessionId,
+      url: `${baseUrl}${SEARCH_JOB_API}/${searchQuerySessionId}`,
     })).then(response => response.data)
   }
 
@@ -69,7 +72,7 @@ export class SearchQueryDataService implements ISearchQueryDataService {
         offset,
         limit : length,
       },
-      url: baseUrl + '/v1/search/jobs/' + searchQuerySessionId + '/messages',
+      url:  `${baseUrl}${SEARCH_JOB_API}/${searchQuerySessionId}/messages`,
     })).then(response => response.data)
   }
 
@@ -91,7 +94,7 @@ export class SearchQueryDataService implements ISearchQueryDataService {
         offset,
         limit : length,
       },
-      url: baseUrl + '/v1/search/jobs/' + searchQuerySessionId + '/records',
+      url: `${baseUrl}${SEARCH_JOB_API}/${searchQuerySessionId}/records`,
     })).then(response => response.data)
   }
 }

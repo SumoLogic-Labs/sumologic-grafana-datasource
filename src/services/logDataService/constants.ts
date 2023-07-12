@@ -29,3 +29,5 @@ export enum SearchQueryType {
 export const MESSAGES_RETRY_COUNT = 100;
 export const MESSAGES_RETRY_DELAY = 3000;
 export const MESSAGES_RETRY_EMPTY_ERROR = 'MESSAGES_RETRY_EMPTY_ERROR';
+
+export const MAX_NUMBER_OF_RECORDS = 10000

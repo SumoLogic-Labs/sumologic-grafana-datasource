@@ -18,7 +18,7 @@ import { interpolateVariable } from './utils/interpolation.utils';
 
 import { formatSumoValues, getSumoToGrafanaType, SumoQueryType } from './types/constants';
 import { searchQueryExecutionService } from './services/logDataService/searchQueryExecutionService';
-import { RunSearchActionType, SearchQueryType, SearchStatus } from './services/logDataService/constants';
+import { MAX_NUMBER_OF_RECORDS, RunSearchActionType, SearchQueryType, SearchStatus } from './services/logDataService/constants';
 import { IField, ISearchStatus, RunSearchAction, SearchQueryParams } from './services/logDataService/types';
 
 import { filter , switchMap } from 'rxjs/operators';
@@ -63,7 +63,7 @@ export class DataSource extends DataSourceApi<SumoQuery> {
 
   fetchLogsQuery(options: DataQueryRequest<SumoQuery>) : Observable<DataQueryResponse>{
 
-    const { targets, range , scopedVars } = options;
+    const { targets, range , scopedVars , maxDataPoints } = options;
 
     const templateSrv = getTemplateSrv();
 
@@ -81,6 +81,8 @@ export class DataSource extends DataSourceApi<SumoQuery> {
       return of({ data : []})
     }
 
+    const maxRecords = Math.min(maxDataPoints || MAX_NUMBER_OF_RECORDS , MAX_NUMBER_OF_RECORDS )
+
     const startTime = range.from.valueOf();
     const endTime = range.to.valueOf();
     const { queryText } = logsQueryObj 
@@ -94,7 +96,7 @@ export class DataSource extends DataSourceApi<SumoQuery> {
       basicAuth : this.basicAuth, 
       paginationInfo : {
         offset : 0,
-        length : 10000 // fetching first 10000 records only
+        length : maxRecords 
       }
     }
     const previousCountMap = {

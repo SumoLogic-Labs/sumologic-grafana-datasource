@@ -26,3 +26,4 @@ export const formatSumoValues = (value : string, type : string)=>{
     }
     return value
 }
+
