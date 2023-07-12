@@ -67,18 +67,19 @@ export class DataSource extends DataSourceApi<SumoQuery> {
 
     const templateSrv = getTemplateSrv();
 
-    const modifiledQueries : SumoQuery[] = targets
+    const modifiedQueries : SumoQuery[] = targets
     .filter(({ queryText }) => Boolean(queryText))
     .map((query) => ({
       ...query,
       queryText: templateSrv.replace(query.queryText as string, scopedVars, interpolateVariable),
     }));
 
-    if (!modifiledQueries.length) {
+
+    const logsQueryObj  = modifiedQueries.find(query=>query.type === SumoQueryType.Logs) as SumoQuery
+
+    if (!logsQueryObj) {
       return of({ data : []})
     }
-
-    const logsQueryObj  = targets.find(query=>query.type === SumoQueryType.Logs) as SumoQuery
 
     const startTime = range.from.valueOf();
     const endTime = range.to.valueOf();
