@@ -22,7 +22,7 @@ import { MAX_NUMBER_OF_RECORDS, RunSearchActionType, SearchQueryType } from './s
 import { ISearchStatus, RunSearchAction, SearchQueryParams } from './services/logDataService/types';
 
 import { filter } from 'rxjs/operators';
-import { generateAggregateResponse, generateNonAggregateResponse, searchFilterForAggregateQuery, SearchFilterForNonAggregateQuery } from './services/logDataService/logSearch.utils';
+import { generateAggregateResponse, generateNonAggregateResponse, searchFilterForAggregateQuery, searchFilterForNonAggregateQuery } from './services/logDataService/logSearch.utils';
 
 export class DataSource extends DataSourceApi<SumoQuery> {
   private readonly baseUrl: string;
@@ -109,7 +109,7 @@ export class DataSource extends DataSourceApi<SumoQuery> {
     const searchStatusFilter = (status$: Observable<ISearchStatus>) => {
       return searchType === SearchQueryType.AGGREGATE ?
         searchFilterForAggregateQuery(status$, previousCountMap) :
-        SearchFilterForNonAggregateQuery(status$, maxRecords, previousCountMap);
+        searchFilterForNonAggregateQuery(status$, maxRecords, previousCountMap);
     }
 
     this.logsController$ = new Subject();

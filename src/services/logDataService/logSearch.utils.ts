@@ -27,7 +27,7 @@ export const searchFilterForAggregateQuery = (status$: Observable<ISearchStatus>
   );
 
 
-export const SearchFilterForNonAggregateQuery = (status$: Observable<ISearchStatus>, maxRecords: number, previousCountMap: IPreviousCount) => status$.pipe(
+export const searchFilterForNonAggregateQuery = (status$: Observable<ISearchStatus>, maxRecords: number, previousCountMap: IPreviousCount) => status$.pipe(
   filter((searchStatusResponse: ISearchStatus) => {
     const isMessageCountUpdated = searchStatusResponse.messageCount && searchStatusResponse.messageCount > previousCountMap.statusmessageCount ? true : false;
 
@@ -55,7 +55,7 @@ export const generateAggregateResponse = (response: SearchResult, previousCountM
       return {
         name: field.name,
         type: getSumoToGrafanaType(field.name, field.fieldType),
-        values: records.map(record => formatSumoValues(field.name , record.map[field.name], field.fieldType)),
+        values: records.map(record => formatSumoValues(field.name, record.map[field.name], field.fieldType)),
       }
     }),
   })
@@ -73,11 +73,11 @@ export const generateNonAggregateResponse = (response: SearchResult, previousCou
       return {
         name: getNonAggregateFieldName(field.name),
         type: getSumoToGrafanaType(field.name, field.fieldType),
-        values: messages.map(message => formatSumoValues(field.name ,message.map[field.name], field.fieldType)),
+        values: messages.map(message => formatSumoValues(field.name, message.map[field.name], field.fieldType)),
       }
     }),
-    meta : {
-      preferredVisualisationType : 'logs'
+    meta: {
+      preferredVisualisationType: 'logs'
     }
   })
 
