@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
   "type": "datasource",
   "name": "Sumo Logic",
-  "id": "sumologic-metrics-datasource",
+  "id": "sumologic-datasource",
   "metrics": true,
   "logs": true,
   "info": {
@@ -17,8 +17,8 @@
       "large": "img/logo.png"
     },
     "links": [
-      {"name": "Project site", "url": "https://github.com/SumoLogic/sumo-logic-metrics-datasource"},
-      {"name": "Apache License", "url": "https://github.com/SumoLogic-Labs/sumologic-metrics-grafana-datasource/blob/HEAD/LICENSE"}
+      {"name": "Project site", "url": "https://github.com/SumoLogic-Labs/sumologic-grafana-datasource"},
+      {"name": "Apache License", "url": "https://github.com/SumoLogic-Labs/sumologic-grafana-datasource/blob/HEAD/LICENSE"}
     ],
     "screenshots": [],
     "version": "1.0.0",

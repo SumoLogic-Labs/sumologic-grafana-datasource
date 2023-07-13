@@ -1,6 +1,6 @@
 **Note** Information for plugin developers is [at the end of this document](#plugin-development).
 
-This page describes the sumologic-metrics-grafana-datasource plugin, a datasource plugin for Grafana that can deliver metrics from your Sumo deployment to Grafana. After installing and configuring the plugin, you can query and visualize metrics from Sumo in the Grafana user interface. You initiate a query from the Grafana UI, the search runs on Sumo, and results are returned to Grafana.
+This page describes the sumologic-grafana-datasource (old name sumologic-metrics-grafana-datasource) plugin, a datasource plugin for Grafana that can deliver metrics from your Sumo deployment to Grafana. After installing and configuring the plugin, you can query and visualize metrics from Sumo in the Grafana user interface. You initiate a query from the Grafana UI, the search runs on Sumo, and results are returned to Grafana.
 
 The Grafana backend will proxy all requests from the browser, and send them on to the data source.
 
@@ -26,7 +26,7 @@ For specific version families, please have a look at the accordingly named branc
 
 # Install the plugin
 
-The GA version of sumologic-metrics-grafana-datasource will be available on https://grafana.com/plugins. At that point, the plugin will be installable using the Grafana command-line interface.
+The GA version of sumologic-grafana-datasource will be available on https://grafana.com/plugins. At that point, the plugin will be installable using the Grafana command-line interface.
 
 To build the beta version, please run following steps:
 
@@ -40,7 +40,7 @@ In order to have local Grafana version, it's recommended to use Docker compose, 
 1. In Sumo, generate an Access ID and Key. For instructions, see [Access Keys](https://help.sumologic.com/Manage/Security/Access-Keys). Save the ID and Key, as you will enter them later in this procedure. If you would like to use Browser Data Source in Grafana, then please ensure that you have added your Grafana domain in the Allowlisted CORS Domains list.
 
 2. On the Grafana Home Dashboard, click **Add data source**.
-   ![datasource](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/add-datasource.png?raw=true)
+   ![datasource](https://github.com/SumoLogic-Labs/sumologic-grafana-datasource/blob/HEAD/screenshots/add-datasource.png?raw=true)
 
 3. Enter a name for the plugin in the **Name** field.
 
@@ -51,7 +51,7 @@ In order to have local Grafana version, it's recommended to use Docker compose, 
 6. In the **URL** field, enter the API endpoint for your deployment. To determine the API endpoint, see [Sumo Logic Endpoints and Firewall Security](https://help.sumologic.com/APIs/General-API-Information/Sumo-Logic-Endpoints-and-Firewall-Security) in Sumo help.
 
 7. In the **Auth** section, select the **Basic auth** checkbox. The **Basic Auth Details** section appears.
-   ![dash-icon](https://github.com/SumoLogic/sumologic-metrics-grafana-datasource/blob/HEAD/screenshots/basic-auth.png?raw=true)
+   ![dash-icon](https://github.com/SumoLogic-Labs/sumologic-grafana-datasource/blob/HEAD/screenshots/basic-auth.png?raw=true)
 
 8. In the **Basic Auth Details** section:
     - In the **User** field, enter the Access ID you generated in step 1.
