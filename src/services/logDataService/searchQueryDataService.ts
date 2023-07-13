@@ -3,7 +3,7 @@
 import { getBackendSrv } from '@grafana/runtime';
 import { lastValueFrom } from 'rxjs';
 
-import { ISearchAggregateResult, ISearchQueryDataService, ISearchStatus, ISearchCreate, SearchQueryParams } from './types';
+import { ISearchAggregateResult, ISearchQueryDataService, ISearchStatus, ISearchCreate, SearchQueryParams, ISearchMessageResult } from './types';
 
 
 const SEARCH_JOB_API = '/v1/search/jobs'
@@ -44,8 +44,8 @@ export class SearchQueryDataService implements ISearchQueryDataService {
     })).then(response => response.data)
   }
 
-  delete(searchQuerySessionId: string , baseUrl : string , basicAuth  :string): Promise<any>{
-    return lastValueFrom(getBackendSrv().fetch<ISearchStatus>({
+  delete(searchQuerySessionId: string , baseUrl : string , basicAuth  :string): Promise<{id : string}>{
+    return lastValueFrom(getBackendSrv().fetch<{id : string}>({
       method : 'DELETE',
       credentials: 'include',
       headers: {
@@ -61,8 +61,8 @@ export class SearchQueryDataService implements ISearchQueryDataService {
     length: number,
     baseUrl : string,
     basicAuth : string,
-  ): Promise<any> {
-    return lastValueFrom(getBackendSrv().fetch<ISearchAggregateResult>({
+  ): Promise<ISearchMessageResult> {
+    return lastValueFrom(getBackendSrv().fetch<ISearchMessageResult>({
       method : 'GET',
       credentials: 'include',
       headers: {
@@ -82,7 +82,7 @@ export class SearchQueryDataService implements ISearchQueryDataService {
     length: number,
     baseUrl : string,
     basicAuth : string,
-  ): Promise<any> {
+  ): Promise<ISearchAggregateResult> {
 
     return lastValueFrom(getBackendSrv().fetch<ISearchAggregateResult>({
       method : 'GET',
