@@ -40,7 +40,7 @@ In order to have local Grafana version, it's recommended to use Docker compose, 
 1. In Sumo, generate an Access ID and Key. For instructions, see [Access Keys](https://help.sumologic.com/Manage/Security/Access-Keys). Save the ID and Key, as you will enter them later in this procedure. If you would like to use Browser Data Source in Grafana, then please ensure that you have added your Grafana domain in the Allowlisted CORS Domains list.
 
 2. On the Grafana Home Dashboard, click **Add data source**.
-   ![datasource](https://github.com/SumoLogic/sumologic-grafana-datasource/blob/HEAD/screenshots/add-datasource.png?raw=true)
+   ![datasource](https://github.com/SumoLogic-Labs/sumologic-grafana-datasource/blob/HEAD/screenshots/add-datasource.png?raw=true)
 
 3. Enter a name for the plugin in the **Name** field.
 
@@ -51,7 +51,7 @@ In order to have local Grafana version, it's recommended to use Docker compose, 
 6. In the **URL** field, enter the API endpoint for your deployment. To determine the API endpoint, see [Sumo Logic Endpoints and Firewall Security](https://help.sumologic.com/APIs/General-API-Information/Sumo-Logic-Endpoints-and-Firewall-Security) in Sumo help.
 
 7. In the **Auth** section, select the **Basic auth** checkbox. The **Basic Auth Details** section appears.
-   ![dash-icon](https://github.com/SumoLogic/sumologic-grafana-datasource/blob/HEAD/screenshots/basic-auth.png?raw=true)
+   ![dash-icon](https://github.com/SumoLogic-Labs/sumologic-grafana-datasource/blob/HEAD/screenshots/basic-auth.png?raw=true)
 
 8. In the **Basic Auth Details** section:
     - In the **User** field, enter the Access ID you generated in step 1.
