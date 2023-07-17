@@ -1,6 +1,6 @@
 import { DataQueryRequest, DataQueryResponse, DataSourceInstanceSettings, TimeRange } from '@grafana/data';
 import { getBackendSrv, getTemplateSrv } from '@grafana/runtime';
-import { of ,firstValueFrom , filter } from 'rxjs';
+import { of ,firstValueFrom , filter , Observable } from 'rxjs';
 
 import { DataSource } from './datasource';
 import { SumoQuery } from './types/metricsApi.types';
@@ -460,7 +460,11 @@ describe('placeholder test', () => {
       recordCount: 1,
       pendingWarnings: [],
       pendingErrors: [],
-      histogramBuckets : [],
+      histogramBuckets : [{
+        startTimestamp: 1687201200000,
+        length: 2700000,
+        count: 502
+    }],
     }
 
 
@@ -514,13 +518,26 @@ describe('placeholder test', () => {
     }
 
     const assertDataFrame = (result : DataQueryResponse , isAggregate = false)=>{
-      // expect(result.data[0].meta.notices).toEqual([]);
       expect(result.data[0].fields[0].name).toBe('_count');
       expect(result.data[0].fields[0].values.buffer[0]).toBe(100);
       
       if(!isAggregate){
         expect(result.data[0].meta).toEqual({preferredVisualisationType : 'logs'});
       }
+    }
+
+    const assertHistogramVolumnsData = (result: DataQueryResponse, { minTime, maxTime, count }: { minTime: number, maxTime: number, count: number }) => {
+      expect(result.data[0].name).toBe('logsVolumn');
+
+      expect(result.data[0].fields[0].name).toBe('MinBucket');
+      expect(result.data[0].fields[0].values.buffer[0]).toBe(minTime);
+
+      expect(result.data[0].fields[1].name).toBe('MaxBucket');
+      expect(result.data[0].fields[1].values.buffer[0]).toBe(maxTime);
+
+      expect(result.data[0].fields[2].name).toBe('count');
+      expect(result.data[0].fields[2].values.buffer[0]).toBe(count);
+
 
     }
 
@@ -575,8 +592,15 @@ describe('placeholder test', () => {
         data : getLogsResponseObj()
       }))
 
-      const result = await firstValueFrom(createDataSource().query(getQuery() as unknown as DataQueryRequest<SumoQuery>)
-      .pipe(filter((response : any)=>response.data.length > 0)));
+
+      const dataSource = createDataSource();
+
+      const queryPromise =  firstValueFrom(dataSource.query(getQuery() as unknown as DataQueryRequest<SumoQuery>)
+      .pipe(filter((response : DataQueryResponse)=>response.data.length > 0)));
+
+      const histogramDataPromise = firstValueFrom((dataSource.getLogsVolumeDataProvider() as Observable<DataQueryResponse>).pipe(filter((response : DataQueryResponse)=>response.data.length > 0)))
+
+      const [queryResult , histogramResult] = await Promise.all([ queryPromise, histogramDataPromise ]) 
 
       const createRequestObj = mockedFetch.mock.calls[0][0];
       expect(createRequestObj.url).toBe(expectedCreatePostRequest.url);
@@ -587,7 +611,8 @@ describe('placeholder test', () => {
 
       const recordsRequest = mockedFetch.mock.calls[2][0];
       expect(recordsRequest.url).toBe(`${url}/${dummuySearchQueryId}/messages`)
-      assertDataFrame(result)
+      assertDataFrame(queryResult)
+      assertHistogramVolumnsData(histogramResult , { minTime : 1687201200000 , maxTime : 1687201200000 + 2700000, count : 502 })
     })
 
   })
