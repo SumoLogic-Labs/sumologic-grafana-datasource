@@ -10,7 +10,7 @@ import {
   LoadingState,
 } from '@grafana/data';
 import { getBackendSrv, getTemplateSrv } from '@grafana/runtime';
-import { lastValueFrom , Observable , Subject , of , from , map , startWith , filter } from 'rxjs';
+import { lastValueFrom , Observable , Subject , of , from , map , startWith  } from 'rxjs';
 import { calculateInterval, createEpochTimeRangeBoundary } from './utils/time.utils';
 import { SumoApiDimensionValuesResponse } from './types/metadataCatalogApi.types';
 import { mapKeyedErrorMessage } from './utils/keyedErrors.utils';
