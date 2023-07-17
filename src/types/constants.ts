@@ -19,10 +19,10 @@ export const SumoToGrafanaFieldName : Record< string ,string > = {
 }
 
 
-const TimeField = ['_timeslice' , '_receipttime' , '_messagetime', '_start_time', '_end_time' ]
+const TimeFields = ['_timeslice' , '_receipttime' , '_messagetime', '_start_time', '_end_time' ]
 
 export const getSumoToGrafanaType  = (fieldName : string , fieldType : string) : FieldType =>{
-    if(TimeField.includes(fieldName)){
+    if(TimeFields.includes(fieldName)){
         return FieldType.time
     }
     return SumoToGrafanaTypeMap[fieldType] || FieldType.string;
