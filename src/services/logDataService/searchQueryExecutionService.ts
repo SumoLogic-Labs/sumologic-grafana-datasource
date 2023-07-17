@@ -22,7 +22,7 @@ import {
   takeWhile,
   publish,
   skipWhile,
-  merge as mergeOprator
+  merge as mergeOprator,
 } from 'rxjs/operators';
 
 
@@ -82,7 +82,6 @@ export class SearchQueryExecutionService {
     control$: Observable<RunSearchAction>,
     statusFilter: SearchStatusFilter,
   ): Observable<SearchResult> {
-
 
     const { baseUrl, basicAuth } = searchParams
 
@@ -180,7 +179,7 @@ export class SearchQueryExecutionService {
     searchQueryId: string,
     baseUrl: string,
     basicAuth: string,
-    stop$: Observable<{}>,
+    stop$: Observable<any>,
   ): Observable<ISearchStatus> {
     // If we make poll condition configurable then it becomes similar to statusFilter.  statusFilter is more like
     // filtering statuses for a desired one, while poll condition controls polling itself.  Is this something

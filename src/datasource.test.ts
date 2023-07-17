@@ -1,6 +1,6 @@
 import { DataQueryRequest, DataQueryResponse, DataSourceInstanceSettings, TimeRange } from '@grafana/data';
 import { getBackendSrv, getTemplateSrv } from '@grafana/runtime';
-import { of ,  firstValueFrom } from 'rxjs';
+import { of ,firstValueFrom , filter } from 'rxjs';
 
 import { DataSource } from './datasource';
 import { SumoQuery } from './types/metricsApi.types';
@@ -460,6 +460,7 @@ describe('placeholder test', () => {
       recordCount: 1,
       pendingWarnings: [],
       pendingErrors: [],
+      histogramBuckets : [],
     }
 
 
@@ -539,7 +540,10 @@ describe('placeholder test', () => {
         data : getLogsResponseObj(true)
       }))
 
-      const result = await firstValueFrom(createDataSource().query(getQuery(true) as unknown as DataQueryRequest<SumoQuery>));
+      const result = await firstValueFrom(createDataSource().query(getQuery(true) as unknown as DataQueryRequest<SumoQuery>)
+      .pipe(filter((response : any)=>response.data.length > 0))
+      );
+
 
       const createRequestObj = mockedFetch.mock.calls[0][0];
       expect(createRequestObj.url).toBe(expectedCreatePostRequest.url);
@@ -571,7 +575,8 @@ describe('placeholder test', () => {
         data : getLogsResponseObj()
       }))
 
-      const result = await firstValueFrom(createDataSource().query(getQuery() as unknown as DataQueryRequest<SumoQuery>));
+      const result = await firstValueFrom(createDataSource().query(getQuery() as unknown as DataQueryRequest<SumoQuery>)
+      .pipe(filter((response : any)=>response.data.length > 0)));
 
       const createRequestObj = mockedFetch.mock.calls[0][0];
       expect(createRequestObj.url).toBe(expectedCreatePostRequest.url);

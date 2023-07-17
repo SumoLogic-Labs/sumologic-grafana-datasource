@@ -6,9 +6,11 @@ import {
   MutableDataFrame,
   FieldType,
   TimeRange,
+  DataSourceWithLogsVolumeSupport,
+  LoadingState,
 } from '@grafana/data';
 import { getBackendSrv, getTemplateSrv } from '@grafana/runtime';
-import { lastValueFrom , Observable , Subject , of , from , map } from 'rxjs';
+import { lastValueFrom , Observable , Subject , of , from , map , startWith , filter } from 'rxjs';
 import { calculateInterval, createEpochTimeRangeBoundary } from './utils/time.utils';
 import { SumoApiDimensionValuesResponse } from './types/metadataCatalogApi.types';
 import { mapKeyedErrorMessage } from './utils/keyedErrors.utils';
@@ -18,23 +20,27 @@ import { interpolateVariable } from './utils/interpolation.utils';
 
 import { isLogsQuery, SumoQueryType } from './types/constants';
 import { searchQueryExecutionService } from './services/logDataService/searchQueryExecutionService';
-import { MAX_NUMBER_OF_RECORDS, RunSearchActionType, SearchQueryType } from './services/logDataService/constants';
-import { ISearchStatus, RunSearchAction, SearchQueryParams } from './services/logDataService/types';
+import { MAX_NUMBER_OF_RECORDS, RunSearchActionType, SearchQueryType, SearchStatus } from './services/logDataService/constants';
+import { ISearchStatus, RunSearchAction, SearchQueryParams, SearchResult } from './services/logDataService/types';
 
-import { filter } from 'rxjs/operators';
-import { generateAggregateResponse, generateNonAggregateResponse, searchFilterForAggregateQuery, searchFilterForNonAggregateQuery } from './services/logDataService/logSearch.utils';
+import { generateAggregateResponse, generateFullRangeHistogram, generateNonAggregateResponse, IPreviousCount, searchFilterForAggregateQuery, searchFilterForNonAggregateQuery } from './services/logDataService/logSearch.utils';
 
-export class DataSource extends DataSourceApi<SumoQuery> {
+export class DataSource extends DataSourceApi<SumoQuery> 
+implements DataSourceWithLogsVolumeSupport<SumoQuery>
+{
   private readonly baseUrl: string;
   private readonly basicAuth: string;
 
   private logsController$ :  Subject<RunSearchAction> | null
+
+  private logsVolumnsProvider$ : Subject<SearchResult> | null
 
   constructor(instanceSettings: DataSourceInstanceSettings) {
     super(instanceSettings);
     this.baseUrl = instanceSettings.url as string;
     this.basicAuth = instanceSettings.basicAuth as string;
     this.logsController$ = null
+    this.logsVolumnsProvider$ = null
   }
 
   // perform logs/metrics query by Grafana
@@ -49,6 +55,7 @@ export class DataSource extends DataSourceApi<SumoQuery> {
       this.logsController$.next({ type : RunSearchActionType.STOP })
       this.logsController$ = null;
     }
+    this.logsVolumnsProvider$ = null;
 
     //Check if any logs query present
     const isLogsQueryType = targets.find(query=> isLogsQuery(query.type))
@@ -59,6 +66,20 @@ export class DataSource extends DataSourceApi<SumoQuery> {
     else{
       return this.fetchMetricsQuery(options);
     }
+  }
+
+  getLogsVolumeDataProvider(): Observable<DataQueryResponse> | undefined{
+    if(this.logsVolumnsProvider$){
+      return this.logsVolumnsProvider$.asObservable()
+      .pipe(map(response=>{
+        const dataFrame = generateFullRangeHistogram(response.status)
+        return {
+          data : [dataFrame],
+          state : LoadingState.Done
+        }
+      }))
+    } 
+    return 
   }
 
 
@@ -101,49 +122,54 @@ export class DataSource extends DataSourceApi<SumoQuery> {
         length : maxRecords 
       }
     }
-    const previousCountMap = {
-      statusmessageCount : 0,
-      actualMessageCount : 0
+    const previousCountMap : IPreviousCount = {
+      statusMessageCount : 0, // message count in status api
+      actualMessageCount : 0  // messages count in message api
+
     }
 
     const searchStatusFilter = (status$: Observable<ISearchStatus>) => {
+      // filters are used to fetch records and messages
       return searchType === SearchQueryType.AGGREGATE ?
         searchFilterForAggregateQuery(status$, previousCountMap) :
         searchFilterForNonAggregateQuery(status$, maxRecords, previousCountMap);
     }
 
     this.logsController$ = new Subject();
+    if(searchType === SearchQueryType.MESSAGES){
+      this.logsVolumnsProvider$ = new Subject();
+    }
 
     return searchQueryExecutionService.run(
       searchParams,
       this.logsController$,
       searchStatusFilter
-    ).pipe(
-      filter(response => {
-        if(searchType === SearchQueryType.MESSAGES){ 
-          // filter to prevent unnecessary rendering in non aggregate messages
-          const messagesCount = response.message?.messages?.length || 0;
-          return messagesCount !== previousCountMap.actualMessageCount // if message count updated then rerender table
-        }
-        return true;
-      }),
+    ).pipe( 
       map(response => {
+        // update log exploror histogram
+        if(searchType === SearchQueryType.MESSAGES){
+          this.logsVolumnsProvider$?.next(response)
+        }
         const responseObj = response[searchType];
+        const status = response.status;
         if (!responseObj) {
           return {
-            data: []
+            data: [],
+            state : LoadingState.Loading
           }
         }
         let dataFrame : MutableDataFrame; 
         if(searchType === SearchQueryType.AGGREGATE){
-          dataFrame = generateAggregateResponse(response , previousCountMap);
+          dataFrame = generateAggregateResponse(response);
         }else{
           dataFrame = generateNonAggregateResponse(response, previousCountMap)
         }
 
-        return { data: [dataFrame] }
+        return { data: [dataFrame], 
+          state : status.state === SearchStatus.DONE_GATHERING_RESULTS ?  LoadingState.Done : LoadingState.Loading
+          }
       }),
-      filter(value => value.data.length > 0)
+      startWith({ data : [] , state : LoadingState.Loading })
     )
   }
 

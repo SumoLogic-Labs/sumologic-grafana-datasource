@@ -58,9 +58,17 @@ export interface RunSearchAction {
     payload?: any;
 }
 
+
+export interface IHistogramBucket{
+    startTimestamp : number,
+    length : number,
+    count : number
+}
+
 export interface ISearchStatus {
     state: SearchStatus;
     messageCount?: number;
+    histogramBuckets : IHistogramBucket[] 
     recordCount?: number;
     pendingErrors?: any[];
     pendingWarnings?: any[];

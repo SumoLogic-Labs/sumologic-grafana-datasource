@@ -54,7 +54,7 @@ export function QueryEditor(props: Props) {
 
   return (
     <div style={{ display: 'flex', gap: '1rem' }}>
-      <div style={{width : '120px'}}>
+      <div style={{width : '175px'}}>
         <Select
           options={selectOptions}
           value={type  || SumoQueryType.Metrics}

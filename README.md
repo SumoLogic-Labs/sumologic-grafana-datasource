@@ -69,6 +69,10 @@ You can query your Sumo metrics using the same query syntax you use in the Sumo 
 
 This plugin supports [Grafana template variables](https://grafana.com/docs/grafana/latest/dashboards/variables/).
 
+# Query Logs in Grafana
+
+You can query your Sumo Logs using the same query syntax you use in the Sumo UI. For more information, see [Logs Queries](https://help.sumologic.com/docs/search/) in Sumo help.
+
 # Plugin development
 
 1. Run `yarn install` to fetch all the dependencies.
