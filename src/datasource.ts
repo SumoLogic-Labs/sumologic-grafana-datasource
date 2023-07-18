@@ -27,6 +27,7 @@ import { generateAggregateResponse, generateFullRangeHistogram, generateNonAggre
 
 export class DataSource extends DataSourceApi<SumoQuery> 
 implements DataSourceWithLogsVolumeSupport<SumoQuery>
+//todo ssharma:  replace DataSourceWithLogsVolumeSupport with DataSourceWithSupplementaryQueriesSupport with new version of grafana dependency
 {
   private readonly baseUrl: string;
   private readonly basicAuth: string;
