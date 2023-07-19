@@ -6,9 +6,11 @@ import {
   MutableDataFrame,
   FieldType,
   TimeRange,
+  DataSourceWithLogsVolumeSupport,
+  LoadingState,
 } from '@grafana/data';
 import { getBackendSrv, getTemplateSrv } from '@grafana/runtime';
-import { lastValueFrom , Observable , Subject , of , from , map } from 'rxjs';
+import { lastValueFrom , Observable , Subject , of , from , map , startWith  } from 'rxjs';
 import { calculateInterval, createEpochTimeRangeBoundary } from './utils/time.utils';
 import { SumoApiDimensionValuesResponse } from './types/metadataCatalogApi.types';
 import { mapKeyedErrorMessage } from './utils/keyedErrors.utils';
@@ -16,24 +18,30 @@ import { MetricsQuery, SumoApiMetricsResponse, SumoQuery } from './types/metrics
 import { dimensionsToLabelSuffix } from './utils/labels.utils';
 import { interpolateVariable } from './utils/interpolation.utils';
 
-import { formatSumoValues, getSumoToGrafanaType, SumoQueryType } from './types/constants';
+import { isLogsQuery, SumoQueryType } from './types/constants';
 import { searchQueryExecutionService } from './services/logDataService/searchQueryExecutionService';
 import { MAX_NUMBER_OF_RECORDS, RunSearchActionType, SearchQueryType, SearchStatus } from './services/logDataService/constants';
-import { IField, ISearchStatus, RunSearchAction, SearchQueryParams } from './services/logDataService/types';
+import { ISearchStatus, RunSearchAction, SearchQueryParams, SearchResult } from './services/logDataService/types';
 
-import { filter , switchMap } from 'rxjs/operators';
+import { generateAggregateResponse, generateFullRangeHistogram, generateNonAggregateResponse, IPreviousCount, searchFilterForAggregateQuery, searchFilterForNonAggregateQuery } from './services/logDataService/logSearch.utils';
 
-export class DataSource extends DataSourceApi<SumoQuery> {
+export class DataSource extends DataSourceApi<SumoQuery> 
+implements DataSourceWithLogsVolumeSupport<SumoQuery>
+//todo ssharma:  replace DataSourceWithLogsVolumeSupport with DataSourceWithSupplementaryQueriesSupport with new version of grafana dependency
+{
   private readonly baseUrl: string;
   private readonly basicAuth: string;
 
   private logsController$ :  Subject<RunSearchAction> | null
+
+  private logsVolumnsProvider$ : Subject<SearchResult> | null
 
   constructor(instanceSettings: DataSourceInstanceSettings) {
     super(instanceSettings);
     this.baseUrl = instanceSettings.url as string;
     this.basicAuth = instanceSettings.basicAuth as string;
     this.logsController$ = null
+    this.logsVolumnsProvider$ = null
   }
 
   // perform logs/metrics query by Grafana
@@ -48,16 +56,31 @@ export class DataSource extends DataSourceApi<SumoQuery> {
       this.logsController$.next({ type : RunSearchActionType.STOP })
       this.logsController$ = null;
     }
+    this.logsVolumnsProvider$ = null;
 
     //Check if any logs query present
-    const isLogsQuery = targets.find(query=>query.type === SumoQueryType.Logs)
+    const isLogsQueryType = targets.find(query=> isLogsQuery(query.type))
 
-    if(isLogsQuery){
+    if(isLogsQueryType){
       return this.fetchLogsQuery(options);
     }
     else{
       return this.fetchMetricsQuery(options);
     }
+  }
+
+  getLogsVolumeDataProvider(): Observable<DataQueryResponse> | undefined{
+    if(this.logsVolumnsProvider$){
+      return this.logsVolumnsProvider$.asObservable()
+      .pipe(map(response=>{
+        const dataFrame = generateFullRangeHistogram(response.status)
+        return {
+          data : [dataFrame],
+          state : LoadingState.Done
+        }
+      }))
+    } 
+    return 
   }
 
 
@@ -75,7 +98,7 @@ export class DataSource extends DataSourceApi<SumoQuery> {
     }));
 
 
-    const logsQueryObj  = modifiedQueries.find(query=>query.type === SumoQueryType.Logs) as SumoQuery
+    const logsQueryObj  = modifiedQueries.find(query=>isLogsQuery(query.type))
 
     if (!logsQueryObj) {
       return of({ data : []})
@@ -85,10 +108,11 @@ export class DataSource extends DataSourceApi<SumoQuery> {
 
     const startTime = range.from.valueOf();
     const endTime = range.to.valueOf();
-    const { queryText } = logsQueryObj 
+    const { queryText , type } = logsQueryObj 
+    const searchType = type === SumoQueryType.LogsAggregate ? SearchQueryType.AGGREGATE : SearchQueryType.MESSAGES;
 
     const searchParams : SearchQueryParams = {
-      types: [SearchQueryType.AGGREGATE],
+      types: [searchType],
       query: queryText || '',
       startTime : startTime,
       endTime : endTime,
@@ -99,55 +123,54 @@ export class DataSource extends DataSourceApi<SumoQuery> {
         length : maxRecords 
       }
     }
-    const previousCountMap = {
-      messageCount : 0
+    const previousCountMap : IPreviousCount = {
+      statusMessageCount : 0, // message count in status api
+      actualMessageCount : 0  // messages count in message api
+
     }
 
-    const searchStatusFilter = (status$: Observable<ISearchStatus>) =>
-    status$.pipe(
-      filter((searchStatusResponse: ISearchStatus) => {
-        const isMessageCountUpdated = searchStatusResponse.messageCount && searchStatusResponse.messageCount > previousCountMap.messageCount ? true : false
-        if(isMessageCountUpdated){
-          previousCountMap.messageCount = searchStatusResponse.messageCount as number
-        }
-
-        const isQueryCompleted = searchStatusResponse.state === SearchStatus.DONE_GATHERING_RESULTS
-
-        return (
-          //fetching records when messages count changes and when query gets completed
-          isMessageCountUpdated || isQueryCompleted
-        );
-      }),
-    );
+    const searchStatusFilter = (status$: Observable<ISearchStatus>) => {
+      // filters are used to fetch records and messages
+      return searchType === SearchQueryType.AGGREGATE ?
+        searchFilterForAggregateQuery(status$, previousCountMap) :
+        searchFilterForNonAggregateQuery(status$, maxRecords, previousCountMap);
+    }
 
     this.logsController$ = new Subject();
+    if(searchType === SearchQueryType.MESSAGES){
+      this.logsVolumnsProvider$ = new Subject();
+    }
 
     return searchQueryExecutionService.run(
       searchParams,
       this.logsController$,
       searchStatusFilter
-    ).pipe(switchMap(response=>{
-      const aggregateResponse = response.aggregate
-      if(!aggregateResponse){
-        return of({
-          data  : []
-        }) as  Observable<DataQueryResponse>
-      }
-      const {fields , records} = aggregateResponse
-
-      const dataFrame = new MutableDataFrame({
-        name : 'AggregateResponse', // dataframe name
-        fields: fields.map((field : IField)=>{
-          return{
-            name : field.name,
-            type :  getSumoToGrafanaType(field.name , field.fieldType),
-            values : records.map(record=> formatSumoValues(record.map[field.name] , field.fieldType )),
+    ).pipe( 
+      map(response => {
+        // update log exploror histogram
+        if(searchType === SearchQueryType.MESSAGES){
+          this.logsVolumnsProvider$?.next(response)
+        }
+        const responseObj = response[searchType];
+        const status = response.status;
+        if (!responseObj) {
+          return {
+            data: [],
+            state : LoadingState.Loading
           }
-        }),
-      })
-      return of({ data : [dataFrame] })
-    }),
-    filter(value=>value.data.length>0)
+        }
+        let dataFrame : MutableDataFrame; 
+        if(searchType === SearchQueryType.AGGREGATE){
+          dataFrame = generateAggregateResponse(response);
+        }else{
+          dataFrame = generateNonAggregateResponse(response, previousCountMap)
+        }
+
+        return { data: [dataFrame], 
+          state : status.state === SearchStatus.DONE_GATHERING_RESULTS ?  LoadingState.Done : LoadingState.Loading
+          }
+      }),
+      startWith({ data : [] , state : LoadingState.Loading })
     )
   }
 

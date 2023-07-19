@@ -1,6 +1,6 @@
-import { DataQueryRequest, DataSourceInstanceSettings, TimeRange } from '@grafana/data';
+import { DataQueryRequest, DataQueryResponse, DataSourceInstanceSettings, TimeRange } from '@grafana/data';
 import { getBackendSrv, getTemplateSrv } from '@grafana/runtime';
-import { of ,  firstValueFrom } from 'rxjs';
+import { of ,firstValueFrom , filter , Observable } from 'rxjs';
 
 import { DataSource } from './datasource';
 import { SumoQuery } from './types/metricsApi.types';
@@ -135,7 +135,7 @@ describe('placeholder test', () => {
     });
   });
 
-  describe('query', () => {
+  describe('query - Metrics', () => {
     const queryMockResponse = () => {
       return {
         error: false,
@@ -438,4 +438,182 @@ describe('placeholder test', () => {
       }]);
     });
   });
+
+  describe('query - Logs' , () => {
+
+    const dummuySearchQueryId = 'dummyId';
+
+    const url = 'https://long-api.sumologic.net/api/v1/search/jobs'
+
+    const range= {
+      from: Date.now(), // in real env Moment instance would be passed
+      to: Date.now(), // in real env Moment instance would be passed
+    }
+
+    const createQueryResponse = {
+      id: dummuySearchQueryId
+    }
+
+    const statusResponse = {
+      state: "DONE GATHERING RESULTS",
+      messageCount: 1,
+      recordCount: 1,
+      pendingWarnings: [],
+      pendingErrors: [],
+      histogramBuckets : [{
+        startTimestamp: 1687201200000,
+        length: 2700000,
+        count: 502
+    }],
+    }
+
+
+    const getLogsResponseObj = (isAggregate = false)=>{
+
+      const commonRecords = [
+        {
+          map: {
+            _count: "100",
+          }
+        }
+      ]
+      return {
+        fields: [
+          {
+            name: "_count",
+            fieldType: "int",
+            keyField: false
+          }
+        ],
+        ...(isAggregate ? { records : commonRecords } : { messages : commonRecords })
+      }
+
+    }
+
+    const expectedCreatePostRequest = {
+      url : url,
+      data : {
+        query: 'error',
+        from: range.from,
+        to: range.to,
+        byReceiptTime: true
+      }
+    }
+
+    const getQuery = (isAggregate = false)=>{
+      return {
+        interval: '-5m',
+        range: range as unknown as TimeRange,
+        maxDataPoints: 100,
+        targets: [{
+          queryText: 'error',
+          refId: 'A',
+          type : isAggregate ? 'LogsAggregate' : 'LogsNonAggregate'
+        }, {
+          queryText: '/', // this will be ignored
+          refId: 'B',
+        }],
+        scopedVars: {},
+      }
+    }
+
+    const assertDataFrame = (result : DataQueryResponse , isAggregate = false)=>{
+      expect(result.data[0].fields[0].name).toBe('_count');
+      expect(result.data[0].fields[0].values.buffer[0]).toBe(100);
+      
+      if(!isAggregate){
+        expect(result.data[0].meta).toEqual({preferredVisualisationType : 'logs'});
+      }
+    }
+
+    const assertHistogramVolumnsData = (result: DataQueryResponse, { minTime, maxTime, count }: { minTime: number, maxTime: number, count: number }) => {
+      expect(result.data[0].name).toBe('logsVolumn');
+
+      expect(result.data[0].fields[0].name).toBe('MinBucket');
+      expect(result.data[0].fields[0].values.buffer[0]).toBe(minTime);
+
+      expect(result.data[0].fields[1].name).toBe('MaxBucket');
+      expect(result.data[0].fields[1].values.buffer[0]).toBe(maxTime);
+
+      expect(result.data[0].fields[2].name).toBe('count');
+      expect(result.data[0].fields[2].values.buffer[0]).toBe(count);
+
+
+    }
+
+
+    it('should able to fetch logs aggregate query' , async()=>{
+
+      const mockedFetch = getBackendSrv().fetch as jest.Mock;
+
+      mockedFetch
+      .mockReturnValueOnce(of({
+        data: createQueryResponse
+      }))
+      .mockReturnValueOnce(of({
+        data : statusResponse
+      }))
+      .mockReturnValueOnce(of({
+        data : getLogsResponseObj(true)
+      }))
+
+      const result = await firstValueFrom(createDataSource().query(getQuery(true) as unknown as DataQueryRequest<SumoQuery>)
+      .pipe(filter((response : any)=>response.data.length > 0))
+      );
+
+
+      const createRequestObj = mockedFetch.mock.calls[0][0];
+      expect(createRequestObj.url).toBe(expectedCreatePostRequest.url);
+      expect(createRequestObj.data).toEqual(expectedCreatePostRequest.data);
+
+      const statusRequestObj = mockedFetch.mock.calls[1][0];
+      expect(statusRequestObj.url).toBe(`${url}/${dummuySearchQueryId}`)
+
+      const recordsRequest = mockedFetch.mock.calls[2][0];
+      expect(recordsRequest.url).toBe(`${url}/${dummuySearchQueryId}/records`)
+
+      assertDataFrame(result , true);
+
+    })
+
+
+    it('should able to fetch logs non aggregate query' , async()=>{
+
+      const mockedFetch = getBackendSrv().fetch as jest.Mock;
+
+      mockedFetch
+      .mockReturnValueOnce(of({
+        data: createQueryResponse
+      }))
+      .mockReturnValueOnce(of({
+        data : statusResponse
+      }))
+      .mockReturnValueOnce(of({
+        data : getLogsResponseObj()
+      }))
+
+
+      const dataSource = createDataSource();
+
+      const queryPromise =  firstValueFrom(dataSource.query(getQuery() as unknown as DataQueryRequest<SumoQuery>)
+      .pipe(filter((response : DataQueryResponse)=>response.data.length > 0)));
+
+      const histogramDataPromise = firstValueFrom((dataSource.getLogsVolumeDataProvider() as Observable<DataQueryResponse>).pipe(filter((response : DataQueryResponse)=>response.data.length > 0)))
+
+      const [queryResult , histogramResult] = await Promise.all([ queryPromise, histogramDataPromise ]) 
+
+      const createRequestObj = mockedFetch.mock.calls[0][0];
+      expect(createRequestObj.url).toBe(expectedCreatePostRequest.url);
+      expect(createRequestObj.data).toEqual(expectedCreatePostRequest.data);
+
+      const statusRequestObj = mockedFetch.mock.calls[1][0];
+      expect(statusRequestObj.url).toBe(`${url}/${dummuySearchQueryId}`)
+
+      const recordsRequest = mockedFetch.mock.calls[2][0];
+      expect(recordsRequest.url).toBe(`${url}/${dummuySearchQueryId}/messages`)
+      assertDataFrame(queryResult)
+      assertHistogramVolumnsData(histogramResult , { minTime : 1687201200000 , maxTime : 1687201200000 + 2700000, count : 502 })
+    })
+
+  })
 });

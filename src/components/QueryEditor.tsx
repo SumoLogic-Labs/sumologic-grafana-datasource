@@ -3,14 +3,18 @@ import { Button, QueryField , Select } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { DataSource } from '../datasource';
 import { SumoQuery } from '../types/metricsApi.types';
-import { SumoQueryType } from '../types/constants';
+import { isLogsQuery, SumoQueryType } from '../types/constants';
  
 type Props = QueryEditorProps<DataSource, SumoQuery>;
 
 const selectOptions = [
   {
-    value : SumoQueryType.Logs,
-    label : 'Logs'
+    value : SumoQueryType.LogsAggregate,
+    label : 'Logs: Aggregate'
+  },
+  {
+    value : SumoQueryType.LogsNonAggregate,
+    label : 'Logs: Non-Aggregate'
   },
   {
     value : SumoQueryType.Metrics,
@@ -34,12 +38,13 @@ export function QueryEditor(props: Props) {
 
 
   const isEditorDisabled = useMemo(()=>{
-    if(props.query.type === SumoQueryType.Logs){
+
+    if(isLogsQuery(type)){
       return false;
     }
     // disable editor is there is any log query present
     if(queries){
-      const logsQuery = queries.find((queryObj : SumoQuery )=>queryObj.type===SumoQueryType.Logs)
+      const logsQuery = queries.find( (queryObj : SumoQuery) =>isLogsQuery(queryObj.type))
       return logsQuery ? true : false
     }
 
@@ -49,7 +54,7 @@ export function QueryEditor(props: Props) {
 
   return (
     <div style={{ display: 'flex', gap: '1rem' }}>
-      <div style={{width : '120px'}}>
+      <div style={{width : '175px'}}>
         <Select
           options={selectOptions}
           value={type  || SumoQueryType.Metrics}
@@ -62,7 +67,7 @@ export function QueryEditor(props: Props) {
         // if onRunQuery is not passed then you user would not be able to focus out from the QueryField
         onRunQuery={onRunQuery}
         onChange={onQueryTextChange}
-        placeholder= {type === SumoQueryType.Logs ? "Logs Query" : "Metric Query"}
+        placeholder= { isLogsQuery(type) ? "Logs Query" : "Metric Query"}
         query={queryText || ''}
         portalOrigin="sumo-metrics"
         disabled={isEditorDisabled}
