@@ -36,8 +36,6 @@ To build the beta version, please run following steps:
 4. Ensure that `GF_DEFAULT_APP_MODE=development` environment variable is set (required for unsigned plugins) for the Grafana.
 5. Restart the Grafana.
 
-**For developers**: In order to have local Grafana version, it's recommended to use Docker compose, please just run `docker-compose up`
-
 # Configure the plugin
 
 1. In Sumo, generate an Access ID and Key. For instructions, see [Access Keys](https://help.sumologic.com/Manage/Security/Access-Keys). Save the ID and Key, as you will enter them later in this procedure. If you would like to use Browser Data Source in Grafana, then please ensure that you have added your Grafana domain in the Allowlisted CORS Domains list.
