@@ -32,8 +32,11 @@ To build the beta version, please run following steps:
 
 1. Run `yarn install` to fetch all the dependencies.
 2. Run `yarn build` in order to run webpack, you are ready to start development
+3. Copy `./dist` content to `grafana/plugins/sumologic-grafana-datasource`
+4. Ensure that `GF_DEFAULT_APP_MODE=development` environment variable is set (required for unsigned plugins) for the Grafana.
+5. Restart the Grafana.
 
-In order to have local Grafana version, it's recommended to use Docker compose, please just run `docker-compose up`
+**For developers**: In order to have local Grafana version, it's recommended to use Docker compose, please just run `docker-compose up`
 
 # Configure the plugin
 
