@@ -17,8 +17,11 @@
       "large": "img/logo.png"
     },
     "links": [
-      {"name": "Project site", "url": "https://github.com/SumoLogic-Labs/sumologic-grafana-datasource"},
-      {"name": "Apache License", "url": "https://github.com/SumoLogic-Labs/sumologic-grafana-datasource/blob/HEAD/LICENSE"}
+      { "name": "Project site", "url": "https://github.com/SumoLogic-Labs/sumologic-grafana-datasource" },
+      {
+        "name": "Apache License",
+        "url": "https://github.com/SumoLogic-Labs/sumologic-grafana-datasource/blob/HEAD/LICENSE"
+      }
     ],
     "screenshots": [],
     "version": "1.0.0",

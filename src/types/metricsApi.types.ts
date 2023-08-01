@@ -82,5 +82,5 @@ export interface MetricsQuery {
 
 export interface SumoQuery extends DataQuery {
   queryText?: string;
-  type?: SumoQueryType
+  type?: SumoQueryType;
 }
