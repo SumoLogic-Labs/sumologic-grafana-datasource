@@ -6,8 +6,8 @@ The Grafana backend will proxy all requests from the browser, and send them on t
 
 - [Grafana version support](#grafana-version-support)
 - [Install the plugin](#install-the-plugin)
-    * [Install on Mac](#install-on-mac)
-    * [Install on Ubuntu Linux](#install-on-ubuntu-linux)
+  - [Install on Mac](#install-on-mac)
+  - [Install on Ubuntu Linux](#install-on-ubuntu-linux)
 - [Configure the plugin](#configure-the-plugin)
 - [Query metrics in Grafana](#query-metrics-in-grafana)
 - [Plugin development](#plugin-development)
@@ -55,12 +55,14 @@ To build the beta version, please run following steps:
    ![dash-icon](https://github.com/SumoLogic-Labs/sumologic-grafana-datasource/blob/HEAD/screenshots/basic-auth.png?raw=true)
 
 8. In the **Basic Auth Details** section:
-    - In the **User** field, enter the Access ID you generated in step 1.
-    - In the **Password** field, enter the Access Key you generated in step 1.
+
+   - In the **User** field, enter the Access ID you generated in step 1.
+   - In the **Password** field, enter the Access Key you generated in step 1.
 
 9. If you are using **old Grafana version**, there are few more points need to be taken into account:
-    1. Select **Sumo Logic Metrics** from the **Type** dropdown.
-    2. In the **Access** field, leave "proxy" selected.
+
+   1. Select **Sumo Logic Metrics** from the **Type** dropdown.
+   2. In the **Access** field, leave "proxy" selected.
 
 10. Click **Add** to save the new data source.
 

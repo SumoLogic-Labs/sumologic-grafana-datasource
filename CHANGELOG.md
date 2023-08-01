@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0 Sumo Metrics Plugin 
+## 1.0.0 Sumo Metrics Plugin
 
 - Support for configuring Sumo as data source
 - Query in panels

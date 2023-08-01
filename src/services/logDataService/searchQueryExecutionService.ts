@@ -1,13 +1,5 @@
 import type { Observable } from 'rxjs';
-import {
-  from,
-  combineLatest,
-  Subject,
-  throwError,
-  of,
-  merge,
-  defer,
-} from 'rxjs';
+import { from, combineLatest, Subject, throwError, of, merge, defer } from 'rxjs';
 import {
   mergeMap,
   switchMap,
@@ -25,29 +17,37 @@ import {
   merge as mergeOprator,
 } from 'rxjs/operators';
 
-
-
-export const takeWhileInclusive = <T>(predicate: (value: T, index: number) => boolean) =>
+export const takeWhileInclusive =
+  <T>(predicate: (value: T, index: number) => boolean) =>
   (source: Observable<T>) =>
-    source.pipe(
-      publish((co) =>
-        co.pipe(
-          takeWhile(predicate),
-          mergeOprator(co.pipe(skipWhile(predicate), take(1))),
-        ),
-      ),
-    );
+    source.pipe(publish((co) => co.pipe(takeWhile(predicate), mergeOprator(co.pipe(skipWhile(predicate), take(1))))));
 
 import { searchQueryDataService } from './searchQueryDataService';
-import { MESSAGES_RETRY_COUNT, MESSAGES_RETRY_DELAY, MESSAGES_RETRY_EMPTY_ERROR, QUERY_STOPPED_STATES, RunSearchActionType, SearchQueryType } from './constants';
-import { ISearchMessageResult, ISearchStatus, ISearchCreate, RetrievePageFunction, RunSearchAction, SearchPaginationInfo, SearchQueryParams, SearchResult, SearchStatusFilter } from './types';
+import {
+  MESSAGES_RETRY_COUNT,
+  MESSAGES_RETRY_DELAY,
+  MESSAGES_RETRY_EMPTY_ERROR,
+  QUERY_STOPPED_STATES,
+  RunSearchActionType,
+  SearchQueryType,
+} from './constants';
+import {
+  ISearchMessageResult,
+  ISearchStatus,
+  ISearchCreate,
+  RetrievePageFunction,
+  RunSearchAction,
+  SearchPaginationInfo,
+  SearchQueryParams,
+  SearchResult,
+  SearchStatusFilter,
+} from './types';
 
 export class SearchQueryExecutionService {
   public run(
     searchParams: SearchQueryParams,
     control$: Observable<RunSearchAction>,
-    statusFilter: SearchStatusFilter,
-
+    statusFilter: SearchStatusFilter
   ): Observable<SearchResult> {
     // Create a search
     const { query, startTime, endTime, baseUrl, basicAuth, timeZone } = searchParams;
@@ -58,20 +58,14 @@ export class SearchQueryExecutionService {
         endTime,
         baseUrl,
         basicAuth,
-        timeZone
-      }
-      ),
+        timeZone,
+      })
     );
     return create$.pipe(
       mergeMap((response: ISearchCreate) => {
         // Transform promise observable into search result observable
-        return this.runSearchWithQueryId(
-          response.id,
-          searchParams,
-          control$,
-          statusFilter,
-        );
-      }),
+        return this.runSearchWithQueryId(response.id, searchParams, control$, statusFilter);
+      })
     );
   }
 
@@ -80,28 +74,21 @@ export class SearchQueryExecutionService {
     searchQueryId: string,
     searchParams: SearchQueryParams,
     control$: Observable<RunSearchAction>,
-    statusFilter: SearchStatusFilter,
+    statusFilter: SearchStatusFilter
   ): Observable<SearchResult> {
-
-    const { baseUrl, basicAuth } = searchParams
+    const { baseUrl, basicAuth } = searchParams;
 
     // Listen for control$ actions
     const stop$ = control$.pipe(
       switchMap((runSearchAction) => {
         switch (runSearchAction.type) {
           case RunSearchActionType.STOP:
-            return searchQueryDataService.delete(
-              searchQueryId,
-              baseUrl,
-              basicAuth
-            );
+            return searchQueryDataService.delete(searchQueryId, baseUrl, basicAuth);
           default:
-            throw new Error(
-              `Action type not supported in control$: ${runSearchAction.type}`,
-            );
+            throw new Error(`Action type not supported in control$: ${runSearchAction.type}`);
         }
       }),
-      share(),
+      share()
     );
 
     // Make status observable
@@ -123,8 +110,8 @@ export class SearchQueryExecutionService {
               basicAuth,
               status$,
               control$,
-              statusFilter,
-            ),
+              statusFilter
+            )
           );
           break;
         case SearchQueryType.AGGREGATE:
@@ -136,8 +123,8 @@ export class SearchQueryExecutionService {
               searchParams.paginationInfo,
               status$,
               control$,
-              statusFilter,
-            ),
+              statusFilter
+            )
           );
           break;
         default:
@@ -147,9 +134,9 @@ export class SearchQueryExecutionService {
 
     // Result selector to pass into combineLatest.
     const resultSelector = (status: ISearchStatus, ...resultByType: any[]) => {
-      const combinedResult : any = { status };
+      const combinedResult: any = { status };
       resultByType.forEach((result, index) => {
-        combinedResult[types[index]] = result; 
+        combinedResult[types[index]] = result;
       });
 
       return combinedResult;
@@ -162,7 +149,7 @@ export class SearchQueryExecutionService {
     // The observable completes when all the combined observables complete
     const searchResultCombined$: Observable<SearchResult> = combineLatest.apply(
       this,
-      params,
+      params
     ) as Observable<SearchResult>;
 
     return searchResultCombined$.pipe(takeUntil(stop$));
@@ -181,13 +168,12 @@ export class SearchQueryExecutionService {
     basicAuth: string,
     stop$: Observable<{
       id: string;
-  }>,
+    }>
   ): Observable<ISearchStatus> {
     // If we make poll condition configurable then it becomes similar to statusFilter.  statusFilter is more like
     // filtering statuses for a desired one, while poll condition controls polling itself.  Is this something
     // we should allow the caller to specify or should we just let them filter for the desired statuses?
-    const pollCondition = (statusResponse: ISearchStatus) =>
-      !QUERY_STOPPED_STATES[statusResponse.state];
+    const pollCondition = (statusResponse: ISearchStatus) => !QUERY_STOPPED_STATES[statusResponse.state];
 
     const statusSubject = new Subject<ISearchStatus>();
 
@@ -197,10 +183,8 @@ export class SearchQueryExecutionService {
         // Currently, we need to take stop$ into account as well becase pausing a raw query doesn't always
         // result in change of state in subsequent status calls. Therefore, the check in pollCondition
         // may not be sufficient.
-        repeatWhen((notifications) =>
-          notifications.pipe(delay(1000), takeUntil(stop$)),
-        ),
-        takeWhileInclusive(pollCondition),
+        repeatWhen((notifications) => notifications.pipe(delay(1000), takeUntil(stop$))),
+        takeWhileInclusive(pollCondition)
       )
       .subscribe((status: ISearchStatus) => {
         statusSubject.next(status);
@@ -230,39 +214,27 @@ export class SearchQueryExecutionService {
     basicAuth: string,
     status$: Observable<ISearchStatus>,
     control$: Observable<RunSearchAction>,
-    statusFilter: SearchStatusFilter,
+    statusFilter: SearchStatusFilter
   ): Observable<ISearchMessageResult> {
     const messages$ = statusFilter(status$).pipe(
       switchMap((searchStatusResponse: ISearchStatus) => {
         // Switch to a message promise once condition is met
         if (searchStatusResponse.messageCount! > 0) {
-          return this.fetchMessagesWithRetry(
-            searchQueryId,
-            baseUrl,
-            basicAuth,
-            paginationInfo,
-          );
+          return this.fetchMessagesWithRetry(searchQueryId, baseUrl, basicAuth, paginationInfo);
         } else if (searchStatusResponse?.pendingErrors?.[0]) {
           // Throw an error because the /create call also will trigger an observable error and we want to be consisten
-          return throwError(
-            new Error(searchStatusResponse.pendingErrors[0]),
-          );
+          return throwError(new Error(searchStatusResponse.pendingErrors[0]));
         } else {
           return of(undefined);
         }
-      }),
+      })
     );
 
     return merge(
       messages$,
-      this.addPagingForControlObservable(
-        control$,
-        baseUrl,
-        basicAuth,
-        searchQueryDataService.messages,
-      ),
+      this.addPagingForControlObservable(control$, baseUrl, basicAuth, searchQueryDataService.messages)
     ).pipe(
-      startWith(undefined), // Start with undefined so that combineLatest will take status without messages;
+      startWith(undefined) // Start with undefined so that combineLatest will take status without messages;
     ) as Observable<ISearchMessageResult>;
   }
 
@@ -273,7 +245,7 @@ export class SearchQueryExecutionService {
     paginationInfo: SearchPaginationInfo,
     status$: Observable<ISearchStatus>,
     control$: Observable<RunSearchAction>,
-    statusFilter: SearchStatusFilter,
+    statusFilter: SearchStatusFilter
   ) {
     const aggregate$ = statusFilter(status$).pipe(
       switchMap((searchStatusResponse: ISearchStatus) => {
@@ -287,25 +259,18 @@ export class SearchQueryExecutionService {
           );
         } else if (searchStatusResponse?.pendingErrors?.[0]) {
           // Throw an error because the /create call also will trigger an observable error and we want to be consisten
-          return throwError(
-            new Error(searchStatusResponse.pendingErrors[0]),
-          );
+          return throwError(new Error(searchStatusResponse.pendingErrors[0]));
         } else {
           return of(undefined);
         }
-      }),
+      })
     );
 
     return merge(
       aggregate$,
-      this.addPagingForControlObservable(
-        control$,
-        baseUrl,
-        basicAuth,
-        searchQueryDataService.aggregates,
-      ),
+      this.addPagingForControlObservable(control$, baseUrl, basicAuth, searchQueryDataService.aggregates)
     ).pipe(
-      startWith(undefined), // Start with undefined so that combineLatest will take status without messages;
+      startWith(undefined) // Start with undefined so that combineLatest will take status without messages;
     );
   }
 
@@ -316,31 +281,19 @@ export class SearchQueryExecutionService {
     searchQueryId: string,
     baseUrl: string,
     basicAuth: string,
-    paginationInfo: SearchPaginationInfo,
+    paginationInfo: SearchPaginationInfo
   ) {
     return defer(() =>
-      searchQueryDataService.messages(
-        searchQueryId,
-        paginationInfo.offset,
-        paginationInfo.length,
-        baseUrl,
-        basicAuth
-      ),
+      searchQueryDataService.messages(searchQueryId, paginationInfo.offset, paginationInfo.length, baseUrl, basicAuth)
     ).pipe(
-      switchMap((result) =>
-        result.messages.length
-          ? of(result)
-          : throwError(new Error(MESSAGES_RETRY_EMPTY_ERROR)),
-      ),
+      switchMap((result) => (result.messages.length ? of(result) : throwError(new Error(MESSAGES_RETRY_EMPTY_ERROR)))),
       retryWhen((error$) =>
         error$.pipe(
-          filter(
-            (error: Error) => error.message === MESSAGES_RETRY_EMPTY_ERROR,
-          ),
+          filter((error: Error) => error.message === MESSAGES_RETRY_EMPTY_ERROR),
           delay(MESSAGES_RETRY_DELAY),
-          take(MESSAGES_RETRY_COUNT),
-        ),
-      ),
+          take(MESSAGES_RETRY_COUNT)
+        )
+      )
     );
   }
 
@@ -356,20 +309,17 @@ export class SearchQueryExecutionService {
     control$: Observable<RunSearchAction>,
     baseUrl: string,
     basicAuth: string,
-    retrievePageFunction: RetrievePageFunction,
+    retrievePageFunction: RetrievePageFunction
   ): Observable<any> {
     return control$.pipe(
-      filter(
-        (runSearchAction) =>
-          runSearchAction.type === RunSearchActionType.SET_PAGE,
-      ),
+      filter((runSearchAction) => runSearchAction.type === RunSearchActionType.SET_PAGE),
       switchMap((runSearchAction) => {
         const {
           sessionId,
           paginationInfo: { offset, length },
         } = runSearchAction.payload;
         return retrievePageFunction(sessionId, offset, length, baseUrl, basicAuth);
-      }),
+      })
     );
   }
 }
