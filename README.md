@@ -47,7 +47,7 @@ To build the beta version, please run following steps:
 
 4. Deselect the **Default** checkbox/switch, unless you want to make the Sumo Logic datasource your default datasource type.
 
-5. You may change **Access** to **Browser**, if you want to load data directly from browser. For this you would need proper entry in Allowlisted CORS Domains which you filled in step 1.
+5. We recommend to change **Access** to **Browser**. For this you would need proper entry in Allowlisted CORS Domains which you filled in step 1.
 
 6. In the **URL** field, enter the API endpoint for your deployment. To determine the API endpoint, see [Sumo Logic Endpoints and Firewall Security](https://help.sumologic.com/APIs/General-API-Information/Sumo-Logic-Endpoints-and-Firewall-Security) in Sumo help.
 
