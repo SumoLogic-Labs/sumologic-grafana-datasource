@@ -50,7 +50,8 @@ export class DataSource extends DataSourceApi<SumoQuery> implements DataSourceWi
 
   constructor(instanceSettings: DataSourceInstanceSettings) {
     super(instanceSettings);
-    this.baseUrl = instanceSettings.url as string;
+    const baseUrl = instanceSettings.url as string;
+    this.baseUrl = baseUrl.replace(/\/$/, '');
     this.basicAuth = instanceSettings.basicAuth as string;
     this.logsController$ = null;
     this.logsVolumnsProvider$ = null;
