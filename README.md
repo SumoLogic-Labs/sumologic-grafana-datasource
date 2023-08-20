@@ -90,3 +90,21 @@ You can query your Sumo Logs using the same query syntax you use in the Sumo UI.
 ### TLS 1.2 Requirement
 
 Sumo Logic only accepts connections from clients using TLS version 1.2 or greater. To utilize the content of this repo, ensure that it's running in an execution environment that is configured to use TLS 1.2 or greater.
+
+# Caveats for Using Log Search Queries
+
+1. By default, all fields will be returned in the response. You can optimize the search by specifying the fields you want in the response using the field operator, see [Fields oprator](https://help.sumologic.com/docs/search/search-query-language/search-operators/fields/) in Sumo help.
+   
+2. Max no of records as part of any query that will be returned = 1296 records. 
+
+  - In the dashboard, you can change this limit by modifying the query options.
+    
+3. Multiple Logs Queries will not be supported.
+   
+   - Metrics Queries will be allowed in multiples, but only one Logs Query will be supported as part of each Dashboard panel.
+    
+4. Alerting will not be supported.
+
+5. Plugin is not supported by Grafana Cloud and will work only with Grafana OnPrem.
+
+6. Disclaimer for running Infrequent query - Grafana (based on our investigation) rerun’s query every time when user do any interaction in grafana UI for eg. Changing time range, modifying query and changing query variable.
