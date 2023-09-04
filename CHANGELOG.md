@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1 
+
+### Fixes:
+- Fix displaying error for invalid queries even if other returns data
+
+
 ## 1.1.0 Sumo Grafana Datasource Plugin
 
 ### Highlights:
