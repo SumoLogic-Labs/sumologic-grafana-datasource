@@ -417,7 +417,6 @@ describe('placeholder test', () => {
 
     it('should handle metrics warning for multiple queries', async () => {
       const mockedFetch = getBackendSrv().fetch as jest.Mock;
-      // const queryMockResponse();
       const mockResponse = queryMockResponse();
       mockedFetch.mockReturnValue(
         of({
@@ -435,10 +434,6 @@ describe('placeholder test', () => {
             ],
             response: [
               mockResponse.response[0],
-              {
-                rowId: 'B',
-                results: [],
-              },
             ],
           },
         })

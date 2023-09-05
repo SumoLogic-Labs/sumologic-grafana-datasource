@@ -221,6 +221,14 @@ export class DataSource extends DataSourceApi<SumoQuery> implements DataSourceWi
         const {
           data: { response, keyedErrors, error, errorKey, errorMessage },
         } = res;
+
+        const rowsWithNoData = [];
+        for (const query of queries) {
+            if (!response.some((rowResponse) => rowResponse.rowId === query.rowId)) {
+                rowsWithNoData.push({ rowId: query.rowId, results: [] });
+            }
+        }
+
         if (error && !response.length) {
           if (errorMessage) {
             throw new Error(errorMessage);
@@ -233,10 +241,12 @@ export class DataSource extends DataSourceApi<SumoQuery> implements DataSourceWi
           const firstKeyedError = keyedErrors.find((keyedError) => keyedError.values?.type === 'error');
           const firstWarningError = keyedErrors.find((keyedError) => keyedError.values?.type === 'warning');
 
-          throw new Error(mapKeyedErrorMessage(firstKeyedError ?? firstWarningError));
+          const errorOrWarning = firstKeyedError ?? firstWarningError;
+          const rowId = errorOrWarning?.values?.rowId;
+          throw new Error(mapKeyedErrorMessage(errorOrWarning, rowId));
         }
 
-        const data = response.flatMap(({ rowId, results }) => {
+        const data = [...response, ...rowsWithNoData].flatMap(({ rowId, results }) => {
           const responseSpecificErrors = hasMultipleQueries
             ? keyedErrors.filter(({ values }) => values?.rowId === rowId)
             : keyedErrors;
